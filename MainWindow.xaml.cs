@@ -4,6 +4,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using Forms = System.Windows.Forms;
 
 namespace InstantMC
 {
@@ -66,7 +67,7 @@ namespace InstantMC
         {
             MessageBoxResult result = MessageBox.Show(
                 "Java is required to run Minecraft.\n\n" +
-                "Click OK or Cancel to manually install later. You can download Java here, https://java-for-minecraft.com/en/",
+                "Click OK to open Java download page, or Cancel to manually install later.",
                 "Java Not Found",
                 MessageBoxButton.OKCancel,
                 MessageBoxImage.Warning
@@ -91,21 +92,32 @@ namespace InstantMC
             }
         }
 
+        private void BrowseDirBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var folderDialog = new Forms.FolderBrowserDialog();
+            folderDialog.Description = "Select .minecraft folder";
+            folderDialog.SelectedPath = Path.GetFullPath(@".\minecraft");
+            
+            if (folderDialog.ShowDialog() == Forms.DialogResult.OK)
+            {
+                MinecraftDirBox.Text = folderDialog.SelectedPath;
+                SaveConfig();
+            }
+        }
+
         private void LoadConfig()
         {
             if (File.Exists(configFile))
             {
                 var lines = File.ReadAllLines(configFile);
-                if (lines.Length > 0)
-                {
-                    JarPathBox.Text = lines[0];
-                }
+                if (lines.Length > 0) JarPathBox.Text = lines[0];
+                if (lines.Length > 1) MinecraftDirBox.Text = lines[1];
             }
         }
 
         private void SaveConfig()
         {
-            File.WriteAllText(configFile, JarPathBox.Text);
+            File.WriteAllText(configFile, $"{JarPathBox.Text}\n{MinecraftDirBox.Text}");
         }
 
         private void SaveProfileBtn_Click(object sender, RoutedEventArgs e)
@@ -193,6 +205,9 @@ namespace InstantMC
 
             try
             {
+                string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
+                Directory.CreateDirectory(minecraftDir);
+
                 string serverArgs = "";
                 if (!string.IsNullOrWhiteSpace(ServerIPBox.Text))
                 {
@@ -202,7 +217,16 @@ namespace InstantMC
 
                 SaveConfig();
 
-                Process.Start("java", $"-jar \"{JarPathBox.Text}\" --username {UsernameBox.Text} --version InstantMC --accessToken 0 --userType legacy --online-mode false{serverArgs}");
+                Process.Start("java", 
+                    $"-jar \"{JarPathBox.Text}\" " +
+                    $"--username {UsernameBox.Text} " +
+                    $"--version InstantMC " +
+                    $"--gameDir \"{minecraftDir}\" " +
+                    $"--assetsDir \"{minecraftDir}\\assets\" " +
+                    $"--accessToken 0 " +
+                    $"--userType legacy " +
+                    $"--online-mode false" +
+                    serverArgs);
             }
             catch (Exception ex)
             {

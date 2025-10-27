@@ -1,0 +1,25 @@
+<Window x:Class="InstantMC.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="InstantMC - One-click Minecraft Launcher" 
+        Height="250" Width="300"
+        WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="15">
+        <Label Content="Profile:"/>
+        <ComboBox x:Name="ProfileDropdown" Height="25" SelectionChanged="ProfileDropdown_Changed"/>
+        
+        <Label Content="Username:" Margin="0,10,0,0"/>
+        <TextBox x:Name="UsernameBox" Height="25"/>
+        
+        <Label Content="Server IP: (optional)" Margin="0,10,0,0"/>
+        <TextBox x:Name="ServerIPBox" Height="25"/>
+        
+        <Label Content="Port:" Margin="0,10,0,0"/>
+        <TextBox x:Name="ServerPortBox" Height="25" Text="25565"/>
+        
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+            <Button x:Name="SaveProfileBtn" Content="Save Profile" Width="100" Height="30" Click="SaveProfileBtn_Click"/>
+            <Button x:Name="LaunchBtn" Content="Launch" Width="100" Height="30" Margin="10,0,0,0" Click="LaunchBtn_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

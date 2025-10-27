@@ -66,7 +66,7 @@ namespace InstantMC
         {
             MessageBoxResult result = MessageBox.Show(
                 "Java is required to run Minecraft.\n\n" +
-                "Click OK to open Java download page, or Cancel to manually install later.",
+                "Click OK or Cancel to manually install later. You can download Java here, https://adoptium.net/temurin/releases/",
                 "Java Not Found",
                 MessageBoxButton.OKCancel,
                 MessageBoxImage.Warning

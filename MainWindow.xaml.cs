@@ -17,6 +17,12 @@ namespace InstantMC
         {
             InitializeComponent();
             ShowEULAWarning();
+            
+            if (!CheckJava())
+            {
+                ShowJavaSetup();
+            }
+            
             LoadConfig();
             LoadProfiles();
         }
@@ -34,6 +40,42 @@ namespace InstantMC
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning
             );
+        }
+
+        private bool CheckJava()
+        {
+            try
+            {
+                Process process = new Process();
+                process.StartInfo.FileName = "java";
+                process.StartInfo.Arguments = "-version";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardError = true;
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
+                process.WaitForExit();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void ShowJavaSetup()
+        {
+            MessageBoxResult result = MessageBox.Show(
+                "Java is required to run Minecraft.\n\n" +
+                "Click OK to open Java download page, or Cancel to manually install later.",
+                "Java Not Found",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Warning
+            );
+
+            if (result == MessageBoxResult.OK)
+            {
+                Process.Start("https://adoptium.net/temurin/releases/");
+            }
         }
 
         private void BrowseBtn_Click(object sender, RoutedEventArgs e)
@@ -158,7 +200,6 @@ namespace InstantMC
                     serverArgs = $" --server {ServerIPBox.Text} --port {port}";
                 }
 
-                // Save JAR path for next time
                 SaveConfig();
 
                 Process.Start("java", $"-jar \"{JarPathBox.Text}\" --username {UsernameBox.Text} --version InstantMC --accessToken 0 --userType legacy --online-mode false{serverArgs}");

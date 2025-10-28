@@ -467,14 +467,29 @@ namespace InstantMC
         public Downloads downloads { get; set; }
         public List<Library> libraries { get; set; }
     }
-    public class AssetIndex { public string id { get; set; } public string url { get; set; } }
-    public class Downloads { public DownloadItem client { get; set; } }
-    public class DownloadItem { public string url { get; set; } }
-    public class Library { 
-        public string name { get; set; } 
-        public LibraryDownloads downloads { get; set; } 
-        public List<Rule> rules { get; set; }
-    }
+
+public class AssetIndex { public string id { get; set; } public string url { get; set; } }
+
+public class Downloads { 
+    public DownloadItem client { get; set; }
+    public Artifact artifact { get; set; } // ADD THIS LINE!
+}
+
+public class DownloadItem { public string url { get; set; } }
+
+// ADD THIS NEW CLASS:
+public class Artifact {
+    public string path { get; set; }
+    public string sha1 { get; set; }
+    public int size { get; set; }
+    public string url { get; set; }
+}
+
+public class Library { 
+    public string name { get; set; } 
+    public Downloads downloads { get; set; } 
+    public List<Rule> rules { get; set; }
+}
     public class Rule { public string action { get; set; } public OS os { get; set; } }
     public class OS { public string name { get; set; } }
     public class AssetsIndex { public Dictionary<string, AssetObject> objects { get; set; } }

@@ -146,7 +146,7 @@ namespace InstantMC
                         string versionJson = await client.DownloadStringTaskAsync(selectedVersionUrl);
                         selectedVersionDetails = JsonConvert.DeserializeObject<VersionDetails>(versionJson);
                         
-                        MessageBox.Show($"Version {versionId} loaded!\nMain Class: {selectedVersionDetails.mainClass}");
+                        DownloadStatus.Text = $"Version {versionId} loaded - Ready to download";
                     }
                 }
             }
@@ -263,14 +263,14 @@ namespace InstantMC
             try
             {
                 DownloadBtn.IsEnabled = false;
-                DownloadBtn.Content = "Downloading...";
+                DownloadProgress.Visibility = Visibility.Visible;
+                DownloadStatus.Text = "Starting download...";
 
                 string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
                 Directory.CreateDirectory(minecraftDir);
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "versions"));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "libraries"));
 
-                // Download client JAR
                 string versionDir = Path.Combine(minecraftDir, "versions", VersionDropdown.SelectedItem.ToString());
                 Directory.CreateDirectory(versionDir);
                 
@@ -278,19 +278,40 @@ namespace InstantMC
                 
                 using (WebClient client = new WebClient())
                 {
-                    await client.DownloadFileTaskAsync(selectedVersionDetails.downloads.client.url, clientJarPath);
-                }
+                    client.DownloadProgressChanged += (s, args) =>
+                    {
+                        DownloadProgress.Value = args.ProgressPercentage;
+                        DownloadStatus.Text = $"Downloading: {args.ProgressPercentage}% ({args.BytesReceived / 1024 / 1024}MB / {args.TotalBytesToReceive / 1024 / 1024}MB)";
+                    };
 
-                MessageBox.Show($"Downloaded Minecraft {VersionDropdown.SelectedItem.ToString()}!\nFile: {clientJarPath}");
+                    client.DownloadFileCompleted += (s, args) =>
+                    {
+                        if (args.Error != null)
+                        {
+                            DownloadStatus.Text = "Download failed!";
+                            MessageBox.Show($"Download failed: {args.Error.Message}");
+                        }
+                        else
+                        {
+                            DownloadStatus.Text = "Download complete!";
+                            MessageBox.Show($"Downloaded Minecraft {VersionDropdown.SelectedItem.ToString()}!\nFile: {clientJarPath}");
+                        }
+                        
+                        DownloadBtn.IsEnabled = true;
+                        DownloadBtn.Content = "Download Game";
+                        DownloadProgress.Visibility = Visibility.Collapsed;
+                    };
+
+                    await client.DownloadFileTaskAsync(new Uri(selectedVersionDetails.downloads.client.url), clientJarPath);
+                }
             }
             catch (Exception ex)
             {
+                DownloadStatus.Text = "Download failed!";
                 MessageBox.Show($"Download failed: {ex.Message}");
-            }
-            finally
-            {
                 DownloadBtn.IsEnabled = true;
                 DownloadBtn.Content = "Download Game";
+                DownloadProgress.Visibility = Visibility.Collapsed;
             }
         }
 

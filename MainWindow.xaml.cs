@@ -4,7 +4,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using Forms = System.Windows.Forms;
 
 namespace InstantMC
 {
@@ -75,7 +74,7 @@ namespace InstantMC
 
             if (result == MessageBoxResult.OK)
             {
-                Process.Start("https://java-for-minecraft.com/en/");
+                Process.Start("https://adoptium.net/temurin/releases/");
             }
         }
 
@@ -94,13 +93,14 @@ namespace InstantMC
 
         private void BrowseDirBtn_Click(object sender, RoutedEventArgs e)
         {
-            var folderDialog = new Forms.FolderBrowserDialog();
-            folderDialog.Description = "Select .minecraft folder";
-            folderDialog.SelectedPath = Path.GetFullPath(@".\minecraft");
+            // Use Win32 folder browser instead of Forms
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            dialog.Description = "Select .minecraft folder";
+            dialog.SelectedPath = Path.GetFullPath(@".\minecraft");
             
-            if (folderDialog.ShowDialog() == Forms.DialogResult.OK)
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                MinecraftDirBox.Text = folderDialog.SelectedPath;
+                MinecraftDirBox.Text = dialog.SelectedPath;
                 SaveConfig();
             }
         }
@@ -241,4 +241,4 @@ namespace InstantMC
         public string ServerIP { get; set; }
         public string ServerPort { get; set; }
     }
-}
+}       

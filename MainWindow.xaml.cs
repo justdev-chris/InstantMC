@@ -472,7 +472,7 @@ namespace InstantMC
     public class DownloadItem { public string url { get; set; } }
     public class Library { 
         public string name { get; set; } 
-        public Downloads downloads { get; set; } 
+        public LibraryDownloads downloads { get; set; } 
         public List<Rule> rules { get; set; }
     }
     public class Rule { public string action { get; set; } public OS os { get; set; } }

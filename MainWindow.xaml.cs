@@ -65,6 +65,18 @@ namespace InstantMC
             MessageBox.Show("Java not found! Please install Java from https://java.com");
         }
 
+        private void BrowseJavaBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var fileDialog = new Forms.OpenFileDialog();
+            fileDialog.Filter = "Java Executable|java.exe";
+            fileDialog.Title = "Select java.exe";
+            
+            if (fileDialog.ShowDialog() == Forms.DialogResult.OK)
+            {
+                JavaPathBox.Text = fileDialog.FileName;
+            }
+        }
+
         private async void RefreshVersionsBtn_Click(object sender, RoutedEventArgs e)
         {
             await LoadVersions();
@@ -153,13 +165,17 @@ namespace InstantMC
             if (File.Exists(configFile))
             {
                 var lines = File.ReadAllLines(configFile);
-                if (lines.Length > 0) MinecraftDirBox.Text = lines[0];
+                if (lines.Length > 0) 
+                {
+                    MinecraftDirBox.Text = lines[0];
+                    if (lines.Length > 1) JavaPathBox.Text = lines[1];
+                }
             }
         }
 
         private void SaveConfig()
         {
-            File.WriteAllText(configFile, MinecraftDirBox.Text);
+            File.WriteAllText(configFile, MinecraftDirBox.Text + "\n" + JavaPathBox.Text);
         }
 
         private void SaveProfileBtn_Click(object sender, RoutedEventArgs e)
@@ -538,7 +554,7 @@ namespace InstantMC
 
                 string classpath = BuildClassPath(minecraftDir);
                 
-                Process.Start("java", 
+                Process.Start(JavaPathBox.Text, 
                     $"-cp \"{classpath}\" " +
                     $"{selectedVersionDetails.mainClass} " +
                     $"--username {UsernameBox.Text} " +

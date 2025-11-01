@@ -530,7 +530,7 @@ namespace InstantMC
             try
             {
                 string serverArgs = "";
-                if (!string.IsNullOrWhiteSpace(ServerIPBox.Text))
+                if (AutoJoinServer.IsChecked == true && !string.IsNullOrWhiteSpace(ServerIPBox.Text))
                 {
                     string port = string.IsNullOrWhiteSpace(ServerPortBox.Text) ? "25565" : ServerPortBox.Text;
                     serverArgs = $" --server {ServerIPBox.Text} --port {port}";

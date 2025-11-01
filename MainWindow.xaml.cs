@@ -37,7 +37,7 @@ namespace InstantMC
 
         private void ShowEULAWarning()
         {
-            MessageBox.Show("EULA warning...");
+            MessageBox.Show("By using this launcher, you agree to Minecraft's EULA.\nMake sure you own the game!");
         }
 
         private bool CheckJava()
@@ -62,7 +62,7 @@ namespace InstantMC
 
         private void ShowJavaSetup()
         {
-            // Java setup code
+            MessageBox.Show("Java not found! Please install Java from https://java.com");
         }
 
         private async void RefreshVersionsBtn_Click(object sender, RoutedEventArgs e)
@@ -96,7 +96,7 @@ namespace InstantMC
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load versions: {ex.Message}");
+                MessageBox.Show($"Failed to load versions: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -125,12 +125,13 @@ namespace InstantMC
                         selectedVersionDetails = JsonConvert.DeserializeObject<VersionDetails>(versionJson);
                         
                         DownloadStatus.Text = $"Version {versionId} loaded - Ready to download";
+                        MessageBox.Show($"Successfully loaded version {versionId}!\nLibraries found: {selectedVersionDetails.libraries?.Count ?? 0}", "Version Loaded");
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load version details: {ex.Message}");
+                MessageBox.Show($"Failed to load version details: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -165,7 +166,7 @@ namespace InstantMC
         {
             if (string.IsNullOrWhiteSpace(UsernameBox.Text))
             {
-                MessageBox.Show("Enter a username!");
+                MessageBox.Show("Enter a username!", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -180,7 +181,7 @@ namespace InstantMC
             SaveProfiles();
             UpdateProfileDropdown();
             ProfileDropdown.Text = profileName;
-            MessageBox.Show($"Profile '{profileName}' saved!");
+            MessageBox.Show($"Profile '{profileName}' saved!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void ProfileDropdown_Changed(object sender, SelectionChangedEventArgs e)
@@ -234,7 +235,7 @@ namespace InstantMC
         {
             if (selectedVersionDetails == null)
             {
-                MessageBox.Show("Select a Minecraft version first!");
+                MessageBox.Show("Select a Minecraft version first!", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -259,12 +260,12 @@ namespace InstantMC
                 await DownloadClient(minecraftDir);
 
                 DownloadStatus.Text = "Download complete!";
-                MessageBox.Show("Game downloaded successfully!");
+                MessageBox.Show("Game downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
                 DownloadStatus.Text = "Download failed!";
-                MessageBox.Show($"Download failed: {ex.Message}");
+                MessageBox.Show($"Download failed: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -275,77 +276,177 @@ namespace InstantMC
 
         private async Task DownloadLibraries(string minecraftDir)
         {
-            DownloadStatus.Text = "Downloading libraries...";
-            
-            using (WebClient client = new WebClient())
+            try
             {
-                foreach (var library in selectedVersionDetails.libraries)
+                DownloadStatus.Text = "Downloading libraries...";
+                
+                if (selectedVersionDetails.libraries == null || selectedVersionDetails.libraries.Count == 0)
                 {
-                    if (!IsLibraryAllowed(library)) continue;
+                    MessageBox.Show("No libraries found in version manifest!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
-                    string libPath = Path.Combine(minecraftDir, "libraries", library.downloads.artifact.path);
-                    string libDir = Path.GetDirectoryName(libPath);
-                    
-                    Directory.CreateDirectory(libDir);
-                    
-                    if (!File.Exists(libPath))
+                int downloadedCount = 0;
+                int errorCount = 0;
+                
+                using (WebClient client = new WebClient())
+                {
+                    foreach (var library in selectedVersionDetails.libraries)
                     {
-                        await client.DownloadFileTaskAsync(new Uri(library.downloads.artifact.url), libPath);
+                        try
+                        {
+                            if (!IsLibraryAllowed(library)) 
+                            {
+                                Console.WriteLine($"Skipping {library.name} - platform not allowed");
+                                continue;
+                            }
+
+                            // Check library structure
+                            if (library.downloads == null)
+                            {
+                                MessageBox.Show($"Library {library.name} has no downloads section!", "Library Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                errorCount++;
+                                continue;
+                            }
+
+                            if (library.downloads.artifact == null)
+                            {
+                                MessageBox.Show($"Library {library.name} has no artifact!", "Library Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                errorCount++;
+                                continue;
+                            }
+
+                            string libPath = Path.Combine(minecraftDir, "libraries", library.downloads.artifact.path);
+                            string libDir = Path.GetDirectoryName(libPath);
+                            
+                            Directory.CreateDirectory(libDir);
+                            
+                            if (!File.Exists(libPath))
+                            {
+                                DownloadStatus.Text = $"Downloading {library.name}...";
+                                await client.DownloadFileTaskAsync(new Uri(library.downloads.artifact.url), libPath);
+                                downloadedCount++;
+                                Console.WriteLine($"Downloaded: {library.name}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Already exists: {library.name}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            errorCount++;
+                            MessageBox.Show($"Failed to download library {library.name}: {ex.Message}", "Download Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                 }
+
+                MessageBox.Show($"Libraries download complete!\nDownloaded: {downloadedCount}\nErrors: {errorCount}", "Libraries Status", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to download libraries: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
             }
         }
 
         private async Task DownloadAssets(string minecraftDir)
         {
-            if (selectedVersionDetails.assetIndex == null) return;
-
-            DownloadStatus.Text = "Downloading assets...";
-            
-            using (WebClient client = new WebClient())
+            try
             {
-                // Download assets index
-                string assetsIndexUrl = selectedVersionDetails.assetIndex.url;
-                string assetsIndexFile = Path.Combine(minecraftDir, "assets", "indexes", selectedVersionDetails.assetIndex.id + ".json");
-                
-                await client.DownloadFileTaskAsync(assetsIndexUrl, assetsIndexFile);
-                
-                string indexJson = File.ReadAllText(assetsIndexFile);
-                assetsIndex = JsonConvert.DeserializeObject<AssetsIndex>(indexJson);
-                
-                // Download assets
-                foreach (var asset in assetsIndex.objects)
+                if (selectedVersionDetails.assetIndex == null) 
                 {
-                    string hash = asset.Value.hash;
-                    string hashPath = Path.Combine(hash.Substring(0, 2), hash);
-                    string localPath = Path.Combine(minecraftDir, "assets", "objects", hashPath);
-                    
-                    if (!File.Exists(localPath))
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(localPath));
-                        await client.DownloadFileTaskAsync(
-                            $"https://resources.download.minecraft.net/{hashPath}", 
-                            localPath
-                        );
-                    }
+                    MessageBox.Show("No assets index found for this version!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
                 }
+
+                DownloadStatus.Text = "Downloading assets...";
+                
+                using (WebClient client = new WebClient())
+                {
+                    // Download assets index
+                    string assetsIndexUrl = selectedVersionDetails.assetIndex.url;
+                    string assetsIndexFile = Path.Combine(minecraftDir, "assets", "indexes", selectedVersionDetails.assetIndex.id + ".json");
+                    
+                    await client.DownloadFileTaskAsync(assetsIndexUrl, assetsIndexFile);
+                    
+                    string indexJson = File.ReadAllText(assetsIndexFile);
+                    assetsIndex = JsonConvert.DeserializeObject<AssetsIndex>(indexJson);
+                    
+                    if (assetsIndex?.objects == null)
+                    {
+                        MessageBox.Show("No assets found in assets index!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    int assetCount = 0;
+                    int assetErrors = 0;
+                    
+                    // Download assets
+                    foreach (var asset in assetsIndex.objects)
+                    {
+                        try
+                        {
+                            string hash = asset.Value.hash;
+                            string hashPath = Path.Combine(hash.Substring(0, 2), hash);
+                            string localPath = Path.Combine(minecraftDir, "assets", "objects", hashPath);
+                            
+                            if (!File.Exists(localPath))
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(localPath));
+                                await client.DownloadFileTaskAsync(
+                                    $"https://resources.download.minecraft.net/{hashPath}", 
+                                    localPath
+                                );
+                                assetCount++;
+                                
+                                if (assetCount % 50 == 0) // Update progress every 50 assets
+                                {
+                                    DownloadStatus.Text = $"Downloaded {assetCount} assets...";
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            assetErrors++;
+                            Console.WriteLine($"Failed to download asset {asset.Key}: {ex.Message}");
+                        }
+                    }
+
+                    MessageBox.Show($"Assets download complete!\nDownloaded: {assetCount}\nErrors: {assetErrors}", "Assets Status", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to download assets: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
             }
         }
 
         private async Task DownloadClient(string minecraftDir)
         {
-            DownloadStatus.Text = "Downloading client...";
-            
-            string clientJarPath = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
-            
-            using (WebClient client = new WebClient())
+            try
             {
-                client.DownloadProgressChanged += (s, args) =>
+                DownloadStatus.Text = "Downloading client...";
+                
+                string clientJarPath = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
+                
+                using (WebClient client = new WebClient())
                 {
-                    DownloadProgress.Value = args.ProgressPercentage;
-                };
+                    client.DownloadProgressChanged += (s, args) =>
+                    {
+                        DownloadProgress.Value = args.ProgressPercentage;
+                        DownloadStatus.Text = $"Downloading client... {args.ProgressPercentage}%";
+                    };
 
-                await client.DownloadFileTaskAsync(new Uri(selectedVersionDetails.downloads.client.url), clientJarPath);
+                    await client.DownloadFileTaskAsync(new Uri(selectedVersionDetails.downloads.client.url), clientJarPath);
+                    MessageBox.Show("Client jar downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to download client: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
             }
         }
 
@@ -386,10 +487,13 @@ namespace InstantMC
             
             foreach (var library in selectedVersionDetails.libraries)
             {
-                if (IsLibraryAllowed(library))
+                if (IsLibraryAllowed(library) && library.downloads?.artifact != null)
                 {
                     string libPath = Path.Combine(minecraftDir, "libraries", library.downloads.artifact.path);
-                    paths.Add(libPath);
+                    if (File.Exists(libPath))
+                    {
+                        paths.Add(libPath);
+                    }
                 }
             }
             
@@ -404,7 +508,7 @@ namespace InstantMC
         {
             if (selectedVersionDetails == null)
             {
-                MessageBox.Show("Select and download a Minecraft version first!");
+                MessageBox.Show("Select and download a Minecraft version first!", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -413,13 +517,13 @@ namespace InstantMC
 
             if (!File.Exists(clientJarPath))
             {
-                MessageBox.Show("Minecraft client not found! Download it first.");
+                MessageBox.Show("Minecraft client not found! Download it first.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(UsernameBox.Text))
             {
-                MessageBox.Show("Enter a username!");
+                MessageBox.Show("Enter a username!", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -447,18 +551,32 @@ namespace InstantMC
                     $"--versionType release " +
                     $"--online-mode false" +
                     serverArgs);
+                    
+                MessageBox.Show("Minecraft launched!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to launch: {ex.Message}");
+                MessageBox.Show($"Failed to launch: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
 
-    // Your existing class definitions here...
-    public class Profile { public string Username { get; set; } public string ServerIP { get; set; } public string ServerPort { get; set; } }
-    public class VersionManifest { public List<Version> versions { get; set; } }
-    public class Version { public string id { get; set; } public string type { get; set; } public string url { get; set; } }
+    public class Profile { 
+        public string Username { get; set; } 
+        public string ServerIP { get; set; } 
+        public string ServerPort { get; set; } 
+    }
+    
+    public class VersionManifest { 
+        public List<Version> versions { get; set; } 
+    }
+    
+    public class Version { 
+        public string id { get; set; } 
+        public string type { get; set; } 
+        public string url { get; set; } 
+    }
+    
     public class VersionDetails { 
         public string id { get; set; }
         public string mainClass { get; set; }
@@ -468,30 +586,51 @@ namespace InstantMC
         public List<Library> libraries { get; set; }
     }
 
-public class AssetIndex { public string id { get; set; } public string url { get; set; } }
+    public class AssetIndex { 
+        public string id { get; set; } 
+        public string url { get; set; } 
+    }
 
-public class Downloads { 
-    public DownloadItem client { get; set; }
-    public Artifact artifact { get; set; } // ADD THIS LINE!
-}
+    public class Downloads { 
+        public DownloadItem client { get; set; }
+    }
 
-public class DownloadItem { public string url { get; set; } }
+    public class DownloadItem { 
+        public string url { get; set; } 
+    }
 
-// ADD THIS NEW CLASS:
-public class Artifact {
-    public string path { get; set; }
-    public string sha1 { get; set; }
-    public int size { get; set; }
-    public string url { get; set; }
-}
+    public class Library { 
+        public string name { get; set; } 
+        public LibraryDownloads downloads { get; set; } 
+        public List<Rule> rules { get; set; }
+    }
 
-public class Library { 
-    public string name { get; set; } 
-    public Downloads downloads { get; set; } 
-    public List<Rule> rules { get; set; }
-}
-    public class Rule { public string action { get; set; } public OS os { get; set; } }
-    public class OS { public string name { get; set; } }
-    public class AssetsIndex { public Dictionary<string, AssetObject> objects { get; set; } }
-    public class AssetObject { public string hash { get; set; } public int size { get; set; } }
+    public class LibraryDownloads {
+        public Artifact artifact { get; set; }
+    }
+
+    public class Artifact {
+        public string path { get; set; }
+        public string sha1 { get; set; }
+        public int size { get; set; }
+        public string url { get; set; }
+    }
+
+    public class Rule { 
+        public string action { get; set; } 
+        public OS os { get; set; } 
+    }
+    
+    public class OS { 
+        public string name { get; set; } 
+    }
+    
+    public class AssetsIndex { 
+        public Dictionary<string, AssetObject> objects { get; set; } 
+    }
+    
+    public class AssetObject { 
+        public string hash { get; set; } 
+        public int size { get; set; } 
+    }
 }

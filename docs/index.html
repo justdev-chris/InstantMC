@@ -29,7 +29,7 @@
         .hero {
             background: linear-gradient(135deg, #252526 0%, #2d2d30 100%);
             border-bottom: 3px solid #ff6b81;
-            padding: 80px 0;
+            padding: 120px 0 80px 0;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -46,9 +46,13 @@
         }
 
         .logo {
-            font-size: 4rem;
-            margin-bottom: 1rem;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 2rem;
             animation: float 3s ease-in-out infinite;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         @keyframes float {
@@ -142,6 +146,38 @@
             opacity: 0.8;
         }
 
+        /* Screenshots */
+        .screenshots {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .screenshot-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .screenshot-item {
+            text-align: center;
+        }
+
+        .screenshot-image {
+            width: 400px;
+            height: 250px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            object-fit: cover;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .screenshot-image:hover {
+            transform: scale(1.05);
+            border-color: #ff6b81;
+            box-shadow: 0 10px 30px rgba(255, 107, 129, 0.3);
+        }
+
         /* Footer */
         .footer {
             text-align: center;
@@ -173,13 +209,24 @@
             .features {
                 grid-template-columns: 1fr;
             }
+            
+            .screenshot-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .screenshot-image {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+            }
         }
     </style>
 </head>
 <body>
     <div class="hero">
         <div class="container">
-            <div class="logo">🐾</div>
+            <img src="app_icon.ico" alt="PawCraft Logo" class="logo">
             <h1>PawCraft Launcher</h1>
             <p>Experience Minecraft with a powerful, modern launcher built for performance and style</p>
             <a href="https://github.com/justdev-chris/PawCraft/releases" class="download-btn">
@@ -209,6 +256,30 @@
                 <div class="feature-icon">📦</div>
                 <h3>No Dependencies</h3>
                 <p>Portable executable - no .NET Framework or additional installations required</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Auto-Update</h3>
+                <p>Automatic version checking and update notifications</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Smart Detection</h3>
+                <p>Automatically finds existing Minecraft installations</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="screenshots">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem; color: #ff6b81;">In Action</h2>
+            <p style="text-align: center; opacity: 0.8; margin-bottom: 3rem;">See PawCraft's sleek interface</p>
+            
+            <div class="screenshot-grid">
+                <div class="screenshot-item">
+                    <img src="screenshot.png" alt="PawCraft Launcher Interface" class="screenshot-image">
+                    <p style="text-align: center; margin-top: 1rem; opacity: 0.8;">Main Interface</p>
+                </div>
             </div>
         </div>
     </div>

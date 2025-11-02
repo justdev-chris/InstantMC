@@ -7,27 +7,33 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-    
+    runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
-      
+
+    - name: Convert PNG to ICO
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y imagemagick
+        convert Resources/app_icon.png -define icon:auto-resize=16,32,48,256 Resources/app_icon.ico
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
-        
+
     - name: Restore dependencies
       run: dotnet restore
-      
+
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      
+
     - name: Publish
-      run: dotnet publish --configuration Release --runtime win-x64 --self-contained true --output publish
-      
-    - name: Upload artifact
+      run: dotnet publish --configuration Release --no-build --output ./publish --runtime win-x64 --self-contained true
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: PawCraft

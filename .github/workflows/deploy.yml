@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build website
+        run: |
+          # Create the final site structure
+          mkdir -p _site
+          cp docs/index.html _site/
+          cp -r docs/css _site/ 2>/dev/null || true
+          cp -r docs/js _site/ 2>/dev/null || true
+          cp -r docs/assets _site/ 2>/dev/null || true
+          echo "🐾 PawCraft Launcher" > _site/README.txt
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

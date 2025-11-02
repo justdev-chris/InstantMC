@@ -1,7 +1,7 @@
 <Window x:Class="PawCraft.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PawCraft Launcher" Height="650" Width="750"
+        Title="PawCraft Launcher" Height="650" Width="800"
         WindowStartupLocation="CenterScreen"
         Background="#2D2D30" Foreground="White"
         BorderBrush="#ff6b81" BorderThickness="1">
@@ -69,6 +69,12 @@
                 </StackPanel>
 
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Game Setup"/>
+                
+                <!-- ADDED: Minecraft Directory Browser -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBox x:Name="MinecraftDirBox" Text=".\.minecraft" Width="200" Style="{StaticResource PawCraftTextBox}" Margin="0,0,10,0"/>
+                    <Button x:Name="BrowseDirBtn" Content="📁 Browse" Click="BrowseDirBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
                 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="Version:" VerticalAlignment="Center" Margin="0,0,10,0"/>

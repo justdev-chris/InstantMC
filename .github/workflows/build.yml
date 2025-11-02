@@ -46,10 +46,9 @@ jobs:
 
     - name: Create WXS file
       run: |
-        @"
-<?xml version="1.0" encoding="UTF-8"?>
+        $content = '<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="${{ env.UPGRADE_GUID }}">
+  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="' + $env:UPGRADE_GUID + '">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -72,7 +71,7 @@ jobs:
 
   <Fragment>
     <ComponentGroup Id="MainComponents" Directory="INSTALLFOLDER">
-      <Component Id="MainExecutable" Guid="${{ env.MAIN_GUID }}">
+      <Component Id="MainExecutable" Guid="' + $env:MAIN_GUID + '">
         <File Id="PawCraftEXE" Source="publish\PawCraft.exe" KeyPath="yes" />
       </Component>
     </ComponentGroup>
@@ -80,15 +79,15 @@ jobs:
 
   <Fragment>
     <ComponentGroup Id="ShortcutComponents" Directory="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="${{ env.SHORTCUT_GUID }}">
+      <Component Id="ApplicationShortcut" Guid="' + $env:SHORTCUT_GUID + '">
         <Shortcut Id="ApplicationStartMenuShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="installed" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </ComponentGroup>
   </Fragment>
-</Wix>
-"@ | Out-File -FilePath "installer.wxs" -Encoding UTF8
+</Wix>'
+        $content | Out-File -FilePath "installer.wxs" -Encoding UTF8
 
     - name: Build MSI
       run: |

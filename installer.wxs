@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="YOUR-UPGRADE-GUID">
+  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="75274cb2-7e48-4ac5-a209-468c71be1c63">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -31,13 +31,13 @@
 
   <Fragment>
     <ComponentGroup Id="ShortcutComponents" Directory="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="YOUR-SHORTCUT-GUID">
+      <Component Id="ApplicationShortcut" Guid="efa40f5f-7368-4267-b51f-261375d2fff0">
         <Shortcut Id="StartMenuShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="installed" Type="integer" Value="1" KeyPath="yes" />
       </Component>
       
-      <Component Id="DesktopShortcut" Guid="YOUR-DESKTOP-GUID" Directory="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="8881ed0a-ab54-4cef-aa3a-c2ee475f1294" Directory="DesktopFolder">
         <Shortcut Id="DesktopShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
         <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>

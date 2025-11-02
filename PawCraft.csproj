@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Resources\app_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -11,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Embedded Resources -->
     <EmbeddedResource Include="Resources\app_bg.png" />
     <EmbeddedResource Include="Resources\app_icon.ico" />
   </ItemGroup>

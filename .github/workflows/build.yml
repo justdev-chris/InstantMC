@@ -1,9 +1,7 @@
-name: Build PawCraft
+name: Build PawCraft with MSI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
@@ -34,9 +32,75 @@ jobs:
     - name: Publish
       run: dotnet publish --configuration Release --output ./publish --runtime win-x64 --self-contained true
 
-    - name: Upload artifacts
+    - name: Install WiX
+      run: choco install wixtoolset -y
+
+    - name: Generate GUIDs
+      run: |
+        $upgrade = [System.Guid]::NewGuid().ToString()
+        $main = [System.Guid]::NewGuid().ToString()
+        $shortcut = [System.Guid]::NewGuid().ToString()
+        echo "UPGRADE_GUID=$upgrade" >> $env:GITHUB_ENV
+        echo "MAIN_GUID=$main" >> $env:GITHUB_ENV
+        echo "SHORTCUT_GUID=$shortcut" >> $env:GITHUB_ENV
+
+    - name: Create WXS file
+      run: |
+        @"
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="${{ env.UPGRADE_GUID }}">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="PawCraft" />
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="PawCraft"/>
+      </Directory>
+    </Directory>
+
+    <Feature Id="MainFeature" Title="PawCraft" Level="1">
+      <ComponentGroupRef Id="MainComponents" />
+      <ComponentGroupRef Id="ShortcutComponents" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <ComponentGroup Id="MainComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="${{ env.MAIN_GUID }}">
+        <File Id="PawCraftEXE" Source="publish\PawCraft.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ShortcutComponents" Directory="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="${{ env.SHORTCUT_GUID }}">
+        <Shortcut Id="ApplicationStartMenuShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
+"@ | Out-File -FilePath "installer.wxs" -Encoding UTF8
+
+    - name: Build MSI
+      run: |
+        heat dir "publish" -cg MainComponents -gg -scom -sreg -sfrag -srd -dr INSTALLFOLDER -var var.SourceDir -out "harvested.wxs"
+        candle -arch x64 -dSourceDir="publish" "installer.wxs" "harvested.wxs"
+        light -ext WixUIExtension -cultures:en-us -out "PawCraft_Installer.msi" "installer.wixobj" "harvested.wixobj"
+
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: PawCraft
-        path: publish/
+        path: |
+          publish/
+          PawCraft_Installer.msi
         retention-days: 30

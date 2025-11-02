@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="d95648c1-1d15-4d93-93ae-a23c6326ee38">
+  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="YOUR-UPGRADE-GUID">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
+
+    <!-- UI Setup -->
+    <UIRef Id="WixUI_InstallDir" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+    
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
@@ -13,22 +19,27 @@
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="PawCraft"/>
       </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop"/>
     </Directory>
 
     <Feature Id="MainFeature" Title="PawCraft" Level="1">
       <ComponentGroupRef Id="MainComponents" />
       <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
     </Feature>
   </Product>
 
-  <!-- Let heat auto-generate ALL files from publish folder -->
-  
   <Fragment>
     <ComponentGroup Id="ShortcutComponents" Directory="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="b9497668-6cb0-45f5-ab24-8d051b7f481c">
-        <Shortcut Id="ApplicationStartMenuShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
+      <Component Id="ApplicationShortcut" Guid="YOUR-SHORTCUT-GUID">
+        <Shortcut Id="StartMenuShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+      
+      <Component Id="DesktopShortcut" Guid="YOUR-DESKTOP-GUID" Directory="DesktopFolder">
+        <Shortcut Id="DesktopShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </ComponentGroup>
   </Fragment>

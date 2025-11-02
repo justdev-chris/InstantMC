@@ -19,7 +19,7 @@
         
         <Style x:Key="PawCraftTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="Black"/>
             <Setter Property="BorderBrush" Value="#ff6b81"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8"/>
@@ -70,7 +70,7 @@
 
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Game Setup"/>
                 
-                <!-- ADDED: Minecraft Directory Browser -->
+                <!-- Minecraft Directory Browser -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBox x:Name="MinecraftDirBox" Text=".\.minecraft" Width="200" Style="{StaticResource PawCraftTextBox}" Margin="0,0,10,0"/>
                     <Button x:Name="BrowseDirBtn" Content="📁 Browse" Click="BrowseDirBtn_Click" Style="{StaticResource PawCraftButton}"/>

@@ -38,7 +38,7 @@ jobs:
     - name: Build MSI
       run: |
         heat dir "publish" -cg MainComponents -gg -scom -sreg -sfrag -srd -dr INSTALLFOLDER -var var.SourceDir -out "harvested.wxs"
-        candle -arch x64 -dSourceDir="publish" "installer.wxs" "harvested.wxs"
+        candle -arch x86 -dSourceDir="publish" "installer.wxs" "harvested.wxs"
         light -ext WixUIExtension -cultures:en-us -out "PawCraft_Installer.msi" "installer.wixobj" "harvested.wixobj"
 
     - name: Upload Artifacts

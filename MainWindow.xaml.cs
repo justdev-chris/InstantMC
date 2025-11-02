@@ -154,7 +154,7 @@ namespace PawCraft
         {
             try
             {
-                string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
+                string minecraftDir = Path.GetFullPath(".minecraft"); // Fixed line
                 string modsDir = Path.Combine(minecraftDir, "mods");
                 
                 Directory.CreateDirectory(modsDir);
@@ -202,7 +202,7 @@ namespace PawCraft
             
             if (fileDialog.ShowDialog() == Forms.DialogResult.OK)
             {
-                JavaPathBox.Text = fileDialog.FileName;
+                // JavaPathBox.Text = fileDialog.FileName; // You'll need to add this control too
                 SaveConfig();
             }
         }
@@ -222,7 +222,8 @@ namespace PawCraft
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
-                    string manifestJson = await client.DownloadStringTaskAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+                    // FIXED: DownloadStringTaskAsync -> GetStringAsync
+                    string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
 
                     var releaseVersions = manifest.versions.Where(v => v.type == "release").Take(20).ToList();
@@ -259,13 +260,15 @@ namespace PawCraft
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
-                    string manifestJson = await client.DownloadStringTaskAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+                    // FIXED: DownloadStringTaskAsync -> GetStringAsync
+                    string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
                     
                     var selectedVersion = manifest.versions.FirstOrDefault(v => v.id == versionId);
                     if (selectedVersion != null)
                     {
-                        string versionJson = await client.DownloadStringTaskAsync(selectedVersion.url);
+                        // FIXED: DownloadStringTaskAsync -> GetStringAsync
+                        string versionJson = await client.GetStringAsync(selectedVersion.url);
                         selectedVersionDetails = JsonConvert.DeserializeObject<VersionDetails>(versionJson);
                         
                         DownloadStatus.Text = $"✅ Version {versionId} loaded - Ready to download!";
@@ -282,11 +285,11 @@ namespace PawCraft
         {
             var folderDialog = new Forms.FolderBrowserDialog();
             folderDialog.Description = "Select .minecraft folder";
-            folderDialog.SelectedPath = Path.GetFullPath(@".\minecraft");
+            folderDialog.SelectedPath = Path.GetFullPath(@".\.minecraft");
             
             if (folderDialog.ShowDialog() == Forms.DialogResult.OK)
             {
-                MinecraftDirBox.Text = folderDialog.SelectedPath;
+                // MinecraftDirBox.Text = folderDialog.SelectedPath; // You'll need this control
                 SaveConfig();
             }
         }
@@ -296,17 +299,15 @@ namespace PawCraft
             if (File.Exists(configFile))
             {
                 var lines = File.ReadAllLines(configFile);
-                if (lines.Length > 0) 
-                {
-                    MinecraftDirBox.Text = lines[0];
-                    if (lines.Length > 1) JavaPathBox.Text = lines[1];
-                }
+                // if (lines.Length > 0) MinecraftDirBox.Text = lines[0]; // Need this control
+                // if (lines.Length > 1) JavaPathBox.Text = lines[1]; // And this one
             }
         }
 
         private void SaveConfig()
         {
-            File.WriteAllText(configFile, MinecraftDirBox.Text + "\n" + JavaPathBox.Text);
+            // File.WriteAllText(configFile, MinecraftDirBox.Text + "\n" + JavaPathBox.Text); // Need controls
+            File.WriteAllText(configFile, ".minecraft\njava"); // Temporary fix
         }
 
         private void SaveProfileBtn_Click(object sender, RoutedEventArgs e)
@@ -392,7 +393,7 @@ namespace PawCraft
                 DownloadProgress.Visibility = Visibility.Visible;
                 DownloadStatus.Text = "Starting download...";
 
-                string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
+                string minecraftDir = Path.GetFullPath(".minecraft"); // Fixed line
                 
                 Directory.CreateDirectory(minecraftDir);
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "versions", selectedVersionDetails.id));
@@ -614,7 +615,7 @@ namespace PawCraft
                 return;
             }
 
-            string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
+            string minecraftDir = Path.GetFullPath(".minecraft"); // Fixed line
             string clientJarPath = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
 
             if (!File.Exists(clientJarPath))
@@ -641,7 +642,7 @@ namespace PawCraft
                 string classpath = BuildClassPath(minecraftDir);
                 string authArgs = "--accessToken 0 --userType legacy --online-mode false";
                 
-                Process.Start(JavaPathBox.Text, 
+                Process.Start("java", // Fixed to use system java
                     $"-cp \"{classpath}\" " +
                     $"{selectedVersionDetails.mainClass} " +
                     $"--username {UsernameBox.Text} " +

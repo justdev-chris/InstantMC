@@ -23,6 +23,9 @@
             <Setter Property="BorderBrush" Value="#ff6b81"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8"/>
+            <Setter Property="SelectionBrush" Value="#ff6b81"/>
+            <Setter Property="SelectionOpacity" Value="0.5"/>
+            <Setter Property="CaretBrush" Value="Black"/>
         </Style>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
@@ -70,10 +73,18 @@
 
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Game Setup"/>
                 
-                <!-- Minecraft Directory Browser -->
+                <!-- Minecraft Directory -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBox x:Name="MinecraftDirBox" Text=".\.minecraft" Width="200" Style="{StaticResource PawCraftTextBox}" Margin="0,0,10,0"/>
                     <Button x:Name="BrowseDirBtn" Content="📁 Browse" Click="BrowseDirBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
+                
+                <!-- Custom Client Jar Path -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Client Jar:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox x:Name="ClientPathBox" Width="200" Style="{StaticResource PawCraftTextBox}" 
+                             ToolTip="Leave empty for auto-downloaded client" Margin="0,0,10,0"/>
+                    <Button x:Name="BrowseClientBtn" Content="📁 Browse" Click="BrowseClientBtn_Click" Style="{StaticResource PawCraftButton}"/>
                 </StackPanel>
                 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">

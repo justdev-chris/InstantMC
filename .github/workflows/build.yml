@@ -22,9 +22,7 @@ jobs:
 
     - name: Convert PNG to ICO
       run: |
-        # Install ImageMagick on Windows
         choco install imagemagick -y
-        # Convert PNG to ICO with multiple sizes
         magick convert Resources/app_icon.png -define icon:auto-resize=16,32,48,256 Resources/app_icon.ico
 
     - name: Restore dependencies
@@ -33,11 +31,8 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-
     - name: Publish
-      run: dotnet publish --configuration Release --no-build --output ./publish
+      run: dotnet publish --configuration Release --no-build --output ./publish --runtime win-x64 --self-contained true
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

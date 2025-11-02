@@ -154,7 +154,7 @@ namespace PawCraft
         {
             try
             {
-                string minecraftDir = Path.GetFullPath(".minecraft"); // Fixed line
+                string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
                 string modsDir = Path.Combine(minecraftDir, "mods");
                 
                 Directory.CreateDirectory(modsDir);
@@ -202,7 +202,20 @@ namespace PawCraft
             
             if (fileDialog.ShowDialog() == Forms.DialogResult.OK)
             {
-                // JavaPathBox.Text = fileDialog.FileName; // You'll need to add this control too
+                JavaPathBox.Text = fileDialog.FileName;
+                SaveConfig();
+            }
+        }
+
+        private void BrowseClientBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var fileDialog = new Forms.OpenFileDialog();
+            fileDialog.Filter = "Minecraft Client|*.jar";
+            fileDialog.Title = "Select client.jar";
+            
+            if (fileDialog.ShowDialog() == Forms.DialogResult.OK)
+            {
+                ClientPathBox.Text = fileDialog.FileName;
                 SaveConfig();
             }
         }
@@ -222,7 +235,6 @@ namespace PawCraft
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
-                    // FIXED: DownloadStringTaskAsync -> GetStringAsync
                     string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
 
@@ -260,14 +272,12 @@ namespace PawCraft
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
-                    // FIXED: DownloadStringTaskAsync -> GetStringAsync
                     string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
                     
                     var selectedVersion = manifest.versions.FirstOrDefault(v => v.id == versionId);
                     if (selectedVersion != null)
                     {
-                        // FIXED: DownloadStringTaskAsync -> GetStringAsync
                         string versionJson = await client.GetStringAsync(selectedVersion.url);
                         selectedVersionDetails = JsonConvert.DeserializeObject<VersionDetails>(versionJson);
                         
@@ -285,11 +295,11 @@ namespace PawCraft
         {
             var folderDialog = new Forms.FolderBrowserDialog();
             folderDialog.Description = "Select .minecraft folder";
-            folderDialog.SelectedPath = Path.GetFullPath(@".\.minecraft");
+            folderDialog.SelectedPath = Path.GetFullPath(@".\minecraft");
             
             if (folderDialog.ShowDialog() == Forms.DialogResult.OK)
             {
-                // MinecraftDirBox.Text = folderDialog.SelectedPath; // You'll need this control
+                MinecraftDirBox.Text = folderDialog.SelectedPath;
                 SaveConfig();
             }
         }
@@ -299,15 +309,15 @@ namespace PawCraft
             if (File.Exists(configFile))
             {
                 var lines = File.ReadAllLines(configFile);
-                // if (lines.Length > 0) MinecraftDirBox.Text = lines[0]; // Need this control
-                // if (lines.Length > 1) JavaPathBox.Text = lines[1]; // And this one
+                if (lines.Length > 0) MinecraftDirBox.Text = lines[0];
+                if (lines.Length > 1) JavaPathBox.Text = lines[1];
+                if (lines.Length > 2) ClientPathBox.Text = lines[2];
             }
         }
 
         private void SaveConfig()
         {
-            // File.WriteAllText(configFile, MinecraftDirBox.Text + "\n" + JavaPathBox.Text); // Need controls
-            File.WriteAllText(configFile, ".minecraft\njava"); // Temporary fix
+            File.WriteAllText(configFile, $"{MinecraftDirBox.Text}\n{JavaPathBox.Text}\n{ClientPathBox.Text}");
         }
 
         private void SaveProfileBtn_Click(object sender, RoutedEventArgs e)
@@ -323,7 +333,7 @@ namespace PawCraft
             {
                 Username = UsernameBox.Text,
                 ServerIP = ServerIPBox.Text,
-                ServerPort = ServerPortBox.Text
+                ServerPort = ServerIPBox.Text
             };
 
             SaveProfiles();
@@ -393,7 +403,7 @@ namespace PawCraft
                 DownloadProgress.Visibility = Visibility.Visible;
                 DownloadStatus.Text = "Starting download...";
 
-                string minecraftDir = Path.GetFullPath(".minecraft"); // Fixed line
+                string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
                 
                 Directory.CreateDirectory(minecraftDir);
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "versions", selectedVersionDetails.id));
@@ -615,13 +625,26 @@ namespace PawCraft
                 return;
             }
 
-            string minecraftDir = Path.GetFullPath(".minecraft"); // Fixed line
-            string clientJarPath = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
+            string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
+            string clientJarPath;
 
-            if (!File.Exists(clientJarPath))
+            // Check if custom client path is provided and valid
+            if (!string.IsNullOrWhiteSpace(ClientPathBox.Text) && File.Exists(ClientPathBox.Text))
             {
-                MessageBox.Show("Minecraft client not found! Download it first.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                clientJarPath = ClientPathBox.Text;
+                DownloadStatus.Text = "✅ Using custom client jar!";
+            }
+            else
+            {
+                // Fall back to default launcher-managed client
+                clientJarPath = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
+                
+                if (!File.Exists(clientJarPath))
+                {
+                    MessageBox.Show($"Client not found at: {clientJarPath}\n\nPlease download the game first or provide a custom client jar!", 
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(UsernameBox.Text))
@@ -642,7 +665,7 @@ namespace PawCraft
                 string classpath = BuildClassPath(minecraftDir);
                 string authArgs = "--accessToken 0 --userType legacy --online-mode false";
                 
-                Process.Start("java", // Fixed to use system java
+                Process.Start(JavaPathBox.Text, 
                     $"-cp \"{classpath}\" " +
                     $"{selectedVersionDetails.mainClass} " +
                     $"--username {UsernameBox.Text} " +
@@ -650,8 +673,8 @@ namespace PawCraft
                     $"--gameDir \"{minecraftDir}\" " +
                     $"--assetsDir \"{Path.Combine(minecraftDir, "assets")}\" " +
                     $"--assetIndex {selectedVersionDetails.assetIndex?.id} " +
-                    $"{authArgs}" +
-                    $"--versionType release " +
+                    $"{authArgs} " +
+                    $"--versionType release" +
                     serverArgs);
                     
                 MessageBox.Show("🚀 Minecraft launched!\n\nEnjoy your game! 🎮", 

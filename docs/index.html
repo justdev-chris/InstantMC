@@ -1,0 +1,138 @@
+<Window x:Class="PawCraft.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PawCraft Launcher" Height="650" Width="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#2D2D30" Foreground="White"
+        BorderBrush="#ff6b81" BorderThickness="1">
+    
+    <Window.Resources>
+        <Style x:Key="PawCraftButton" TargetType="Button">
+            <Setter Property="Background" Value="#3C3C3C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#ff6b81"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        
+        <Style x:Key="PawCraftTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#ff6b81"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#ff6b81"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#252526" CornerRadius="10" Margin="0,0,0,15" BorderBrush="#ff6b81" BorderThickness="1">
+            <StackPanel Orientation="Horizontal" Margin="15">
+                <TextBlock Text="🐾" FontSize="24" VerticalAlignment="Center"/>
+                <TextBlock Text="PawCraft Launcher" FontSize="20" FontWeight="Bold" Foreground="#ff6b81" Margin="10,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Column -->
+            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Appearance"/>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                    <TextBlock Text="Theme:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox x:Name="ThemeSelector" Width="150" Background="#1E1E1E" Foreground="White" BorderBrush="#ff6b81">
+                        <ComboBoxItem Content="Dark Theme"/>
+                        <ComboBoxItem Content="Light Theme"/>
+                        <ComboBoxItem Content="Custom Background"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Game Setup"/>
+                
+                <!-- ADDED: Minecraft Directory Browser -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBox x:Name="MinecraftDirBox" Text=".\.minecraft" Width="200" Style="{StaticResource PawCraftTextBox}" Margin="0,0,10,0"/>
+                    <Button x:Name="BrowseDirBtn" Content="📁 Browse" Click="BrowseDirBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Version:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox x:Name="VersionDropdown" Width="120" Background="#1E1E1E" Foreground="White" BorderBrush="#ff6b81" Margin="0,0,10,0" SelectionChanged="VersionDropdown_Changed"/>
+                    <Button x:Name="RefreshVersionsBtn" Content="Refresh" Click="RefreshVersionsBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
+
+                <Button x:Name="DownloadBtn" Content="📥 Download Game" Click="DownloadBtn_Click" Style="{StaticResource PawCraftButton}" Margin="0,5,0,10"/>
+                
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Java Settings"/>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBox x:Name="JavaPathBox" Text="java" Width="200" Style="{StaticResource PawCraftTextBox}" Margin="0,0,10,0"/>
+                    <Button x:Name="BrowseJavaBtn" Content="📂 Browse" Click="BrowseJavaBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Right Column -->
+            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Profile Settings"/>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Profile:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <ComboBox x:Name="ProfileDropdown" Width="150" Background="#1E1E1E" Foreground="White" BorderBrush="#ff6b81" Margin="0,0,10,0" SelectionChanged="ProfileDropdown_Changed"/>
+                    <Button x:Name="SaveProfileBtn" Content="💾 Save" Click="SaveProfileBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
+
+                <TextBox x:Name="UsernameBox" Style="{StaticResource PawCraftTextBox}" Margin="0,0,0,10" Text="Player"/>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                    <CheckBox x:Name="AutoJoinServer" Content="Join Server on Launch" VerticalAlignment="Center" Foreground="White" Margin="0,0,15,0"/>
+                    <Button x:Name="OpenModsBtn" Content="📁 Mods Folder" Click="OpenModsBtn_Click" Style="{StaticResource PawCraftButton}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBox x:Name="ServerIPBox" Width="120" Style="{StaticResource PawCraftTextBox}" Text=""/>
+                    <TextBox x:Name="ServerPortBox" Width="60" Style="{StaticResource PawCraftTextBox}" Text="25565" Margin="10,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- Bottom Section -->
+        <Border Grid.Row="2" Background="#252526" CornerRadius="10" BorderBrush="#ff6b81" BorderThickness="1">
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <ProgressBar x:Name="DownloadProgress" Height="10" Visibility="Collapsed" Background="#1E1E1E" Foreground="#ff6b81"/>
+                    <TextBlock x:Name="DownloadStatus" Text="🎯 Select a version and download the game!" FontStyle="Italic" Foreground="Gray" Margin="0,5,0,0"/>
+                </StackPanel>
+
+                <Button x:Name="LaunchBtn" Grid.Column="1" Content="🚀 LAUNCH MINECRAFT" 
+                        Click="LaunchBtn_Click" Style="{StaticResource PawCraftButton}" 
+                        Background="#ff6b81" FontSize="14" Padding="20,10"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

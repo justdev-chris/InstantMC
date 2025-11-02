@@ -28,6 +28,14 @@
             <Setter Property="CaretBrush" Value="Black"/>
         </Style>
 
+        <Style x:Key="PawCraftComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#ff6b81"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+
         <Style x:Key="SectionHeader" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -48,6 +56,12 @@
             <StackPanel Orientation="Horizontal" Margin="15">
                 <TextBlock Text="🐾" FontSize="24" VerticalAlignment="Center"/>
                 <TextBlock Text="PawCraft Launcher" FontSize="20" FontWeight="Bold" Foreground="#ff6b81" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <Button x:Name="GitHubBtn" Content="🐱 GitHub" Click="GitHubBtn_Click" 
+                        Style="{StaticResource PawCraftButton}" Margin="20,0,10,0"
+                        Background="#6e5494" Foreground="White"/>
+                <Button x:Name="HelpBtn" Content="❓ Help" Click="HelpBtn_Click" 
+                        Style="{StaticResource PawCraftButton}" Margin="0,0,0,0"
+                        Background="#ff6b81" Foreground="White"/>
             </StackPanel>
         </Border>
 
@@ -60,17 +74,6 @@
 
             <!-- Left Column -->
             <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Appearance"/>
-                
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                    <TextBlock Text="Theme:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="ThemeSelector" Width="150" Background="#1E1E1E" Foreground="White" BorderBrush="#ff6b81">
-                        <ComboBoxItem Content="Dark Theme"/>
-                        <ComboBoxItem Content="Light Theme"/>
-                        <ComboBoxItem Content="Custom Background"/>
-                    </ComboBox>
-                </StackPanel>
-
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Game Setup"/>
                 
                 <!-- Minecraft Directory -->
@@ -87,9 +90,10 @@
                     <Button x:Name="BrowseClientBtn" Content="📁 Browse" Click="BrowseClientBtn_Click" Style="{StaticResource PawCraftButton}"/>
                 </StackPanel>
                 
+                <!-- Version Selection -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="Version:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="VersionDropdown" Width="120" Background="#1E1E1E" Foreground="White" BorderBrush="#ff6b81" Margin="0,0,10,0" SelectionChanged="VersionDropdown_Changed"/>
+                    <ComboBox x:Name="VersionDropdown" Width="150" Style="{StaticResource PawCraftComboBox}" Margin="0,0,10,0" SelectionChanged="VersionDropdown_Changed"/>
                     <Button x:Name="RefreshVersionsBtn" Content="Refresh" Click="RefreshVersionsBtn_Click" Style="{StaticResource PawCraftButton}"/>
                 </StackPanel>
 
@@ -107,9 +111,10 @@
             <StackPanel Grid.Column="1" Margin="10,0,0,0">
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Profile Settings"/>
                 
+                <!-- Profile Selection -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="Profile:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="ProfileDropdown" Width="150" Background="#1E1E1E" Foreground="White" BorderBrush="#ff6b81" Margin="0,0,10,0" SelectionChanged="ProfileDropdown_Changed"/>
+                    <ComboBox x:Name="ProfileDropdown" Width="150" Style="{StaticResource PawCraftComboBox}" Margin="0,0,10,0" SelectionChanged="ProfileDropdown_Changed"/>
                     <Button x:Name="SaveProfileBtn" Content="💾 Save" Click="SaveProfileBtn_Click" Style="{StaticResource PawCraftButton}"/>
                 </StackPanel>
 
@@ -120,9 +125,12 @@
                     <Button x:Name="OpenModsBtn" Content="📁 Mods Folder" Click="OpenModsBtn_Click" Style="{StaticResource PawCraftButton}"/>
                 </StackPanel>
 
+                <!-- Server IP and Port with Labels -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Server IP:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox x:Name="ServerIPBox" Width="120" Style="{StaticResource PawCraftTextBox}" Text=""/>
-                    <TextBox x:Name="ServerPortBox" Width="60" Style="{StaticResource PawCraftTextBox}" Text="25565" Margin="10,0,0,0"/>
+                    <TextBlock Text="Port:" VerticalAlignment="Center" Margin="10,0,10,0"/>
+                    <TextBox x:Name="ServerPortBox" Width="60" Style="{StaticResource PawCraftTextBox}" Text="25565"/>
                 </StackPanel>
             </StackPanel>
         </Grid>

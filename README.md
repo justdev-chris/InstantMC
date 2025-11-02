@@ -1,4 +1,4 @@
-# InstantMC
+# PawCraft
 One-click Minecraft launcher for offline/cracked servers.
 
 ## Features

@@ -45,10 +45,3 @@ jobs:
         name: PawCraft
         path: publish/
         retention-days: 30
-
-    - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: publish/*
-        generate_release_notes: true

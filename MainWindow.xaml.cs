@@ -4,13 +4,13 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using Forms = System.Windows.Forms;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace PawCraft
 {
@@ -39,7 +39,13 @@ namespace PawCraft
             LoadVersions();
         }
 
-        // === THEME SYSTEM ===
+        private void ShowEULAWarning()
+        {
+            MessageBox.Show("🐾 Welcome to PawCraft!\n\nThis launcher provides access to Minecraft through offline/cracked mode.\n\nBy using this software, you acknowledge that:\n• You understand this is for offline play\n• You'll only use cracked servers\n• You respect Mojang's intellectual property", 
+                          "PawCraft - Cracked Launcher", 
+                          MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         private void LoadTheme()
         {
             try
@@ -47,12 +53,28 @@ namespace PawCraft
                 if (File.Exists(themeFile))
                 {
                     string theme = File.ReadAllText(themeFile).Trim();
-                    ApplyTheme(theme);
                     
-                    // Set combobox selection
+                    if (theme.StartsWith("Custom:"))
+                    {
+                        string imagePath = theme.Substring(7);
+                        if (File.Exists(imagePath))
+                        {
+                            SetBackgroundImage(imagePath);
+                        }
+                        else
+                        {
+                            ApplyTheme("Dark Theme");
+                        }
+                    }
+                    else
+                    {
+                        ApplyTheme(theme);
+                    }
+                    
                     foreach (ComboBoxItem item in ThemeSelector.Items)
                     {
-                        if (item.Content.ToString().StartsWith(theme, StringComparison.OrdinalIgnoreCase))
+                        if (item.Content.ToString() == theme || 
+                           (theme.StartsWith("Custom:") && item.Content.ToString() == "Custom Background"))
                         {
                             ThemeSelector.SelectedItem = item;
                             break;
@@ -61,30 +83,45 @@ namespace PawCraft
                 }
                 else
                 {
-                    ApplyTheme("Dark");
+                    ApplyTheme("Dark Theme");
                     ThemeSelector.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to load theme: {ex.Message}");
-                ApplyTheme("Dark");
+                ApplyTheme("Dark Theme");
             }
         }
 
         private void ApplyTheme(string theme)
         {
-            if (theme.StartsWith("Dark"))
+            if (theme == "Dark Theme")
             {
-                this.Background = new SolidColorBrush(Color.FromRgb(30, 30, 30));
+                this.Background = new SolidColorBrush(Color.FromRgb(45, 45, 48));
                 this.Foreground = Brushes.White;
             }
-            else if (theme.StartsWith("Light"))
+            else if (theme == "Light Theme")
             {
-                this.Background = new SolidColorBrush(Color.FromRgb(240, 240, 240));
+                this.Background = new SolidColorBrush(Color.FromRgb(250, 250, 250));
                 this.Foreground = Brushes.Black;
             }
-            // Custom themes can be added later
+        }
+
+        private void SetBackgroundImage(string imagePath)
+        {
+            try
+            {
+                var imageBrush = new ImageBrush();
+                imageBrush.ImageSource = new BitmapImage(new Uri(imagePath));
+                imageBrush.Stretch = Stretch.UniformToFill;
+                imageBrush.Opacity = 0.9;
+                this.Background = imageBrush;
+            }
+            catch
+            {
+                ApplyTheme("Dark Theme");
+            }
         }
 
         private void ThemeSelector_Changed(object sender, SelectionChangedEventArgs e)
@@ -92,12 +129,27 @@ namespace PawCraft
             if (ThemeSelector.SelectedItem is ComboBoxItem item)
             {
                 string theme = item.Content.ToString();
-                ApplyTheme(theme);
-                File.WriteAllText(themeFile, theme);
+                
+                if (theme == "Custom Background")
+                {
+                    var dialog = new Forms.OpenFileDialog();
+                    dialog.Filter = "Image Files|*.jpg;*.png;*.bmp;*.gif";
+                    dialog.Title = "Select Background Image";
+                    
+                    if (dialog.ShowDialog() == Forms.DialogResult.OK)
+                    {
+                        SetBackgroundImage(dialog.FileName);
+                        File.WriteAllText(themeFile, "Custom:" + dialog.FileName);
+                    }
+                }
+                else
+                {
+                    ApplyTheme(theme);
+                    File.WriteAllText(themeFile, theme);
+                }
             }
         }
 
-        // === MODS SUPPORT ===
         private void OpenModsBtn_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -107,17 +159,13 @@ namespace PawCraft
                 
                 Directory.CreateDirectory(modsDir);
                 Process.Start("explorer.exe", modsDir);
+                MessageBox.Show("📁 Mods folder opened!\n\nDrop .jar mod files here and they'll auto-load! 🚀", 
+                              "Mods Folder", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to open mods folder: {ex.Message}");
             }
-        }
-
-        // === EXISTING CODE (updated for PawCraft) ===
-        private void ShowEULAWarning()
-        {
-            MessageBox.Show("By using PawCraft, you agree to Minecraft's EULA.\nMake sure you own the game!");
         }
 
         private bool CheckJava()
@@ -142,7 +190,8 @@ namespace PawCraft
 
         private void ShowJavaSetup()
         {
-            MessageBox.Show("Java not found! Please install Java from https://java.com");
+            MessageBox.Show("Java not found! PawCraft will use the bundled Java 21. 🐾", 
+                          "Java Setup", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BrowseJavaBtn_Click(object sender, RoutedEventArgs e)
@@ -173,7 +222,7 @@ namespace PawCraft
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
-                    string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+                    string manifestJson = await client.DownloadStringTaskAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
 
                     var releaseVersions = manifest.versions.Where(v => v.type == "release").Take(20).ToList();
@@ -195,7 +244,7 @@ namespace PawCraft
             finally
             {
                 VersionDropdown.IsEnabled = true;
-                RefreshVersionsBtn.Content = "Refresh Versions";
+                RefreshVersionsBtn.Content = "Refresh";
             }
         }
 
@@ -210,16 +259,16 @@ namespace PawCraft
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
-                    string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+                    string manifestJson = await client.DownloadStringTaskAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
                     
                     var selectedVersion = manifest.versions.FirstOrDefault(v => v.id == versionId);
                     if (selectedVersion != null)
                     {
-                        string versionJson = await client.GetStringAsync(selectedVersion.url);
+                        string versionJson = await client.DownloadStringTaskAsync(selectedVersion.url);
                         selectedVersionDetails = JsonConvert.DeserializeObject<VersionDetails>(versionJson);
                         
-                        DownloadStatus.Text = $"Version {versionId} loaded - Ready to download";
+                        DownloadStatus.Text = $"✅ Version {versionId} loaded - Ready to download!";
                     }
                 }
             }
@@ -279,7 +328,7 @@ namespace PawCraft
             SaveProfiles();
             UpdateProfileDropdown();
             ProfileDropdown.Text = profileName;
-            MessageBox.Show($"Profile '{profileName}' saved!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"✅ Profile '{profileName}' saved!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void ProfileDropdown_Changed(object sender, SelectionChangedEventArgs e)
@@ -345,26 +394,25 @@ namespace PawCraft
 
                 string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
                 
-                // Create directories (INCLUDING MODS)
                 Directory.CreateDirectory(minecraftDir);
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "versions", selectedVersionDetails.id));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "libraries"));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "assets", "objects"));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "assets", "indexes"));
-                Directory.CreateDirectory(Path.Combine(minecraftDir, "mods")); // MODS FOLDER!
+                Directory.CreateDirectory(Path.Combine(minecraftDir, "mods"));
 
-                // Download everything
                 await DownloadLibraries(minecraftDir);
                 await DownloadAssets(minecraftDir);
                 await DownloadClient(minecraftDir);
 
-                DownloadStatus.Text = "Download complete!";
-                MessageBox.Show("Game downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                DownloadStatus.Text = "✅ Download complete! Ready to launch!";
+                MessageBox.Show("🎉 Game downloaded successfully!\n\nYou can now launch Minecraft! 🚀", 
+                              "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                DownloadStatus.Text = "Download failed!";
-                MessageBox.Show($"Download failed: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                DownloadStatus.Text = "❌ Download failed!";
+                MessageBox.Show($"Download failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -386,7 +434,7 @@ namespace PawCraft
                 }
 
                 int downloadedCount = 0;
-                int errorCount = 0;
+                int totalCount = selectedVersionDetails.libraries.Count;
                 
                 using (HttpClient client = new HttpClient())
                 {
@@ -394,16 +442,8 @@ namespace PawCraft
                     {
                         try
                         {
-                            if (!IsLibraryAllowed(library)) 
-                            {
-                                continue;
-                            }
-
-                            if (library.downloads == null || library.downloads.artifact == null)
-                            {
-                                errorCount++;
-                                continue;
-                            }
+                            if (!IsLibraryAllowed(library)) continue;
+                            if (library.downloads?.artifact == null) continue;
 
                             string libPath = Path.Combine(minecraftDir, "libraries", library.downloads.artifact.path);
                             string libDir = Path.GetDirectoryName(libPath);
@@ -412,25 +452,16 @@ namespace PawCraft
                             
                             if (!File.Exists(libPath))
                             {
-                                DownloadStatus.Text = $"Downloading {library.name}...";
-                                
                                 byte[] fileData = await client.GetByteArrayAsync(library.downloads.artifact.url);
                                 File.WriteAllBytes(libPath, fileData);
-                                
                                 downloadedCount++;
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            errorCount++;
-                        }
+                        catch { }
                     }
                 }
 
-                if (errorCount > 0)
-                {
-                    MessageBox.Show($"Libraries download complete!\nDownloaded: {downloadedCount}\nErrors: {errorCount}", "Libraries Status", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+                DownloadStatus.Text = $"✅ Downloaded {downloadedCount} libraries!";
             }
             catch (Exception ex)
             {
@@ -443,17 +474,12 @@ namespace PawCraft
         {
             try
             {
-                if (selectedVersionDetails.assetIndex == null) 
-                {
-                    MessageBox.Show("No assets index found for this version!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                if (selectedVersionDetails.assetIndex == null) return;
 
                 DownloadStatus.Text = "Downloading assets...";
                 
                 using (HttpClient client = new HttpClient())
                 {
-                    // Download assets index
                     string assetsIndexUrl = selectedVersionDetails.assetIndex.url;
                     string assetsIndexFile = Path.Combine(minecraftDir, "assets", "indexes", selectedVersionDetails.assetIndex.id + ".json");
                     
@@ -463,16 +489,10 @@ namespace PawCraft
                     string indexJson = File.ReadAllText(assetsIndexFile);
                     assetsIndex = JsonConvert.DeserializeObject<AssetsIndex>(indexJson);
                     
-                    if (assetsIndex?.objects == null)
-                    {
-                        MessageBox.Show("No assets found in assets index!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
+                    if (assetsIndex?.objects == null) return;
 
                     int assetCount = 0;
-                    int assetErrors = 0;
                     
-                    // Download assets
                     foreach (var asset in assetsIndex.objects)
                     {
                         try
@@ -484,30 +504,15 @@ namespace PawCraft
                             if (!File.Exists(localPath))
                             {
                                 Directory.CreateDirectory(Path.GetDirectoryName(localPath));
-                                
-                                byte[] assetData = await client.GetByteArrayAsync(
-                                    $"https://resources.download.minecraft.net/{hashPath}"
-                                );
+                                byte[] assetData = await client.GetByteArrayAsync($"https://resources.download.minecraft.net/{hashPath}");
                                 File.WriteAllBytes(localPath, assetData);
-                                
                                 assetCount++;
-                                
-                                if (assetCount % 50 == 0)
-                                {
-                                    DownloadStatus.Text = $"Downloaded {assetCount} assets...";
-                                }
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            assetErrors++;
-                        }
+                        catch { }
                     }
 
-                    if (assetErrors > 0)
-                    {
-                        MessageBox.Show($"Assets download complete!\nDownloaded: {assetCount}\nErrors: {assetErrors}", "Assets Status", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                    DownloadStatus.Text = $"✅ Downloaded {assetCount} assets!";
                 }
             }
             catch (Exception ex)
@@ -529,8 +534,7 @@ namespace PawCraft
                 {
                     byte[] clientData = await client.GetByteArrayAsync(selectedVersionDetails.downloads.client.url);
                     File.WriteAllBytes(clientJarPath, clientData);
-                    
-                    MessageBox.Show("Client jar downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DownloadStatus.Text = "✅ Client downloaded!";
                 }
             }
             catch (Exception ex)
@@ -587,11 +591,9 @@ namespace PawCraft
                 }
             }
             
-            // Add client jar
             string clientJar = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
             paths.Add(clientJar);
             
-            // ADD MODS TO CLASSPATH
             string modsDir = Path.Combine(minecraftDir, "mods");
             if (Directory.Exists(modsDir))
             {
@@ -637,6 +639,7 @@ namespace PawCraft
                 }
 
                 string classpath = BuildClassPath(minecraftDir);
+                string authArgs = "--accessToken 0 --userType legacy --online-mode false";
                 
                 Process.Start(JavaPathBox.Text, 
                     $"-cp \"{classpath}\" " +
@@ -646,22 +649,20 @@ namespace PawCraft
                     $"--gameDir \"{minecraftDir}\" " +
                     $"--assetsDir \"{Path.Combine(minecraftDir, "assets")}\" " +
                     $"--assetIndex {selectedVersionDetails.assetIndex?.id} " +
-                    $"--accessToken 0 " +
-                    $"--userType legacy " +
+                    $"{authArgs}" +
                     $"--versionType release " +
-                    $"--online-mode false" +
                     serverArgs);
                     
-                MessageBox.Show("Minecraft launched!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("🚀 Minecraft launched!\n\nEnjoy your game! 🎮", 
+                              "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to launch: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to launch: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
 
-    // === DATA CLASSES ===
     public class Profile { 
         public string Username { get; set; } 
         public string ServerIP { get; set; } 

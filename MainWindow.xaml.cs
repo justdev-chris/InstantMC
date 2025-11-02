@@ -19,15 +19,12 @@ namespace PawCraft
         private Dictionary<string, Profile> profiles = new Dictionary<string, Profile>();
         private string profilesFile = "profiles.txt";
         private string configFile = "config.txt";
-        private string themeFile = "theme.txt";
         private VersionDetails selectedVersionDetails;
         private AssetsIndex assetsIndex;
 
         public MainWindow()
         {
             InitializeComponent();
-            LoadTheme();
-            ShowEULAWarning();
             
             if (!CheckJava())
             {
@@ -39,114 +36,51 @@ namespace PawCraft
             LoadVersions();
         }
 
-        private void ShowEULAWarning()
+        private void HelpBtn_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("🐾 Welcome to PawCraft!\n\nThis launcher provides access to Minecraft through offline/cracked mode.\n\nBy using this software, you acknowledge that:\n• You understand this is for offline play\n• You'll only use cracked servers\n• You respect Mojang's intellectual property", 
-                          "PawCraft - Cracked Launcher", 
-                          MessageBoxButton.OK, MessageBoxImage.Information);
+            string tutorial = @"🐾 PAWCRAFT TUTORIAL 🐾
+
+📁 SETUP:
+• Select .minecraft folder location
+• Choose Java path (auto-detected)
+• Pick Minecraft version from dropdown
+
+🎮 PROFILES:
+• Enter your username
+• Click 'Save' to remember settings  
+• Set server IP/port if joining server
+
+🚀 LAUNCHING:
+• Click 'Download Game' first time
+• Or use 'Client Jar' for existing install
+• Click 'LAUNCH MINECRAFT' to play!
+
+🔧 EXTRAS:
+• 'Mods Folder': Add .jar mod files
+• 'Custom Client': Use existing Minecraft
+• 'Auto-join': Connect to server on launch
+
+💡 TIP: Save different profiles for different usernames/servers!";
+
+            MessageBox.Show(tutorial, "PawCraft Tutorial", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void LoadTheme()
+        private void GitHubBtn_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (File.Exists(themeFile))
+                Process.Start(new ProcessStartInfo
                 {
-                    string theme = File.ReadAllText(themeFile).Trim();
-                    
-                    if (theme.StartsWith("Custom:"))
-                    {
-                        string imagePath = theme.Substring(7);
-                        if (File.Exists(imagePath))
-                        {
-                            SetBackgroundImage(imagePath);
-                        }
-                        else
-                        {
-                            ApplyTheme("Dark Theme");
-                        }
-                    }
-                    else
-                    {
-                        ApplyTheme(theme);
-                    }
-                    
-                    foreach (ComboBoxItem item in ThemeSelector.Items)
-                    {
-                        if (item.Content.ToString() == theme || 
-                           (theme.StartsWith("Custom:") && item.Content.ToString() == "Custom Background"))
-                        {
-                            ThemeSelector.SelectedItem = item;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    ApplyTheme("Dark Theme");
-                    ThemeSelector.SelectedIndex = 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load theme: {ex.Message}");
-                ApplyTheme("Dark Theme");
-            }
-        }
-
-        private void ApplyTheme(string theme)
-        {
-            if (theme == "Dark Theme")
-            {
-                this.Background = new SolidColorBrush(Color.FromRgb(45, 45, 48));
-                this.Foreground = Brushes.White;
-            }
-            else if (theme == "Light Theme")
-            {
-                this.Background = new SolidColorBrush(Color.FromRgb(250, 250, 250));
-                this.Foreground = Brushes.Black;
-            }
-        }
-
-        private void SetBackgroundImage(string imagePath)
-        {
-            try
-            {
-                var imageBrush = new ImageBrush();
-                imageBrush.ImageSource = new BitmapImage(new Uri(imagePath));
-                imageBrush.Stretch = Stretch.UniformToFill;
-                imageBrush.Opacity = 0.9;
-                this.Background = imageBrush;
+                    FileName = "https://github.com/justdev-chris/PawCraft",
+                    UseShellExecute = true
+                });
             }
             catch
             {
-                ApplyTheme("Dark Theme");
-            }
-        }
-
-        private void ThemeSelector_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (ThemeSelector.SelectedItem is ComboBoxItem item)
-            {
-                string theme = item.Content.ToString();
-                
-                if (theme == "Custom Background")
-                {
-                    var dialog = new Forms.OpenFileDialog();
-                    dialog.Filter = "Image Files|*.jpg;*.png;*.bmp;*.gif";
-                    dialog.Title = "Select Background Image";
-                    
-                    if (dialog.ShowDialog() == Forms.DialogResult.OK)
-                    {
-                        SetBackgroundImage(dialog.FileName);
-                        File.WriteAllText(themeFile, "Custom:" + dialog.FileName);
-                    }
-                }
-                else
-                {
-                    ApplyTheme(theme);
-                    File.WriteAllText(themeFile, theme);
-                }
+                Clipboard.SetText("https://github.com/justdev-chris/PawCraft");
+                MessageBox.Show("📋 GitHub link copied to clipboard!\n\nPaste in your browser:\ngithub.com/justdev-chris/PawCraft", 
+                               "PawCraft on GitHub", 
+                               MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -333,7 +267,7 @@ namespace PawCraft
             {
                 Username = UsernameBox.Text,
                 ServerIP = ServerIPBox.Text,
-                ServerPort = ServerIPBox.Text
+                ServerPort = ServerPortBox.Text
             };
 
             SaveProfiles();

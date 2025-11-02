@@ -3,26 +3,29 @@ name: Build PawCraft
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Convert PNG to ICO
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y imagemagick
-        convert Resources/app_icon.png -define icon:auto-resize=16,32,48,256 Resources/app_icon.ico
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
+
+    - name: Convert PNG to ICO
+      run: |
+        # Install ImageMagick on Windows
+        choco install imagemagick -y
+        # Convert PNG to ICO with multiple sizes
+        magick convert Resources/app_icon.png -define icon:auto-resize=16,32,48,256 Resources/app_icon.ico
 
     - name: Restore dependencies
       run: dotnet restore
@@ -30,8 +33,11 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
     - name: Publish
-      run: dotnet publish --configuration Release --no-build --output ./publish --runtime win-x64 --self-contained true
+      run: dotnet publish --configuration Release --no-build --output ./publish
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -39,3 +45,10 @@ jobs:
         name: PawCraft
         path: publish/
         retention-days: 30
+
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: publish/*
+        generate_release_notes: true

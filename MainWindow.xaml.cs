@@ -5,24 +5,28 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Net;
+using System.Net.Http;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using Forms = System.Windows.Forms;
+using System.Windows.Media;
 
-namespace InstantMC
+namespace PawCraft
 {
     public partial class MainWindow : Window
     {
         private Dictionary<string, Profile> profiles = new Dictionary<string, Profile>();
         private string profilesFile = "profiles.txt";
         private string configFile = "config.txt";
+        private string themeFile = "theme.txt";
         private VersionDetails selectedVersionDetails;
         private AssetsIndex assetsIndex;
 
         public MainWindow()
         {
             InitializeComponent();
+            LoadTheme();
             ShowEULAWarning();
             
             if (!CheckJava())
@@ -35,9 +39,85 @@ namespace InstantMC
             LoadVersions();
         }
 
+        // === THEME SYSTEM ===
+        private void LoadTheme()
+        {
+            try
+            {
+                if (File.Exists(themeFile))
+                {
+                    string theme = File.ReadAllText(themeFile).Trim();
+                    ApplyTheme(theme);
+                    
+                    // Set combobox selection
+                    foreach (ComboBoxItem item in ThemeSelector.Items)
+                    {
+                        if (item.Content.ToString().StartsWith(theme, StringComparison.OrdinalIgnoreCase))
+                        {
+                            ThemeSelector.SelectedItem = item;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    ApplyTheme("Dark");
+                    ThemeSelector.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load theme: {ex.Message}");
+                ApplyTheme("Dark");
+            }
+        }
+
+        private void ApplyTheme(string theme)
+        {
+            if (theme.StartsWith("Dark"))
+            {
+                this.Background = new SolidColorBrush(Color.FromRgb(30, 30, 30));
+                this.Foreground = Brushes.White;
+            }
+            else if (theme.StartsWith("Light"))
+            {
+                this.Background = new SolidColorBrush(Color.FromRgb(240, 240, 240));
+                this.Foreground = Brushes.Black;
+            }
+            // Custom themes can be added later
+        }
+
+        private void ThemeSelector_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (ThemeSelector.SelectedItem is ComboBoxItem item)
+            {
+                string theme = item.Content.ToString();
+                ApplyTheme(theme);
+                File.WriteAllText(themeFile, theme);
+            }
+        }
+
+        // === MODS SUPPORT ===
+        private void OpenModsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
+                string modsDir = Path.Combine(minecraftDir, "mods");
+                
+                Directory.CreateDirectory(modsDir);
+                Process.Start("explorer.exe", modsDir);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open mods folder: {ex.Message}");
+            }
+        }
+
+        // === EXISTING CODE (updated for PawCraft) ===
         private void ShowEULAWarning()
         {
-            MessageBox.Show("By using this launcher, you agree to Minecraft's EULA.\nMake sure you own the game!");
+            MessageBox.Show("By using PawCraft, you agree to Minecraft's EULA.\nMake sure you own the game!");
         }
 
         private bool CheckJava()
@@ -74,6 +154,7 @@ namespace InstantMC
             if (fileDialog.ShowDialog() == Forms.DialogResult.OK)
             {
                 JavaPathBox.Text = fileDialog.FileName;
+                SaveConfig();
             }
         }
 
@@ -89,9 +170,10 @@ namespace InstantMC
                 VersionDropdown.IsEnabled = false;
                 RefreshVersionsBtn.Content = "Loading...";
 
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
-                    string manifestJson = await client.DownloadStringTaskAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+                    client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
+                    string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
 
                     var releaseVersions = manifest.versions.Where(v => v.type == "release").Take(20).ToList();
@@ -125,19 +207,19 @@ namespace InstantMC
             
             try
             {
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
-                    string manifestJson = await client.DownloadStringTaskAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
+                    client.DefaultRequestHeaders.Add("User-Agent", "PawCraft/1.0");
+                    string manifestJson = await client.GetStringAsync("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");
                     VersionManifest manifest = JsonConvert.DeserializeObject<VersionManifest>(manifestJson);
                     
                     var selectedVersion = manifest.versions.FirstOrDefault(v => v.id == versionId);
                     if (selectedVersion != null)
                     {
-                        string versionJson = await client.DownloadStringTaskAsync(selectedVersion.url);
+                        string versionJson = await client.GetStringAsync(selectedVersion.url);
                         selectedVersionDetails = JsonConvert.DeserializeObject<VersionDetails>(versionJson);
                         
                         DownloadStatus.Text = $"Version {versionId} loaded - Ready to download";
-                        MessageBox.Show($"Successfully loaded version {versionId}!\nLibraries found: {selectedVersionDetails.libraries?.Count ?? 0}", "Version Loaded");
                     }
                 }
             }
@@ -263,12 +345,13 @@ namespace InstantMC
 
                 string minecraftDir = Path.GetFullPath(MinecraftDirBox.Text);
                 
-                // Create directories
+                // Create directories (INCLUDING MODS)
                 Directory.CreateDirectory(minecraftDir);
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "versions", selectedVersionDetails.id));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "libraries"));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "assets", "objects"));
                 Directory.CreateDirectory(Path.Combine(minecraftDir, "assets", "indexes"));
+                Directory.CreateDirectory(Path.Combine(minecraftDir, "mods")); // MODS FOLDER!
 
                 // Download everything
                 await DownloadLibraries(minecraftDir);
@@ -305,7 +388,7 @@ namespace InstantMC
                 int downloadedCount = 0;
                 int errorCount = 0;
                 
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
                     foreach (var library in selectedVersionDetails.libraries)
                     {
@@ -313,21 +396,11 @@ namespace InstantMC
                         {
                             if (!IsLibraryAllowed(library)) 
                             {
-                                Console.WriteLine($"Skipping {library.name} - platform not allowed");
                                 continue;
                             }
 
-                            // Check library structure
-                            if (library.downloads == null)
+                            if (library.downloads == null || library.downloads.artifact == null)
                             {
-                                MessageBox.Show($"Library {library.name} has no downloads section!", "Library Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                                errorCount++;
-                                continue;
-                            }
-
-                            if (library.downloads.artifact == null)
-                            {
-                                MessageBox.Show($"Library {library.name} has no artifact!", "Library Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                                 errorCount++;
                                 continue;
                             }
@@ -340,28 +413,28 @@ namespace InstantMC
                             if (!File.Exists(libPath))
                             {
                                 DownloadStatus.Text = $"Downloading {library.name}...";
-                                await client.DownloadFileTaskAsync(new Uri(library.downloads.artifact.url), libPath);
+                                
+                                byte[] fileData = await client.GetByteArrayAsync(library.downloads.artifact.url);
+                                File.WriteAllBytes(libPath, fileData);
+                                
                                 downloadedCount++;
-                                Console.WriteLine($"Downloaded: {library.name}");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Already exists: {library.name}");
                             }
                         }
                         catch (Exception ex)
                         {
                             errorCount++;
-                            MessageBox.Show($"Failed to download library {library.name}: {ex.Message}", "Download Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
                 }
 
-                MessageBox.Show($"Libraries download complete!\nDownloaded: {downloadedCount}\nErrors: {errorCount}", "Libraries Status", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (errorCount > 0)
+                {
+                    MessageBox.Show($"Libraries download complete!\nDownloaded: {downloadedCount}\nErrors: {errorCount}", "Libraries Status", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to download libraries: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to download libraries: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 throw;
             }
         }
@@ -378,13 +451,14 @@ namespace InstantMC
 
                 DownloadStatus.Text = "Downloading assets...";
                 
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
                     // Download assets index
                     string assetsIndexUrl = selectedVersionDetails.assetIndex.url;
                     string assetsIndexFile = Path.Combine(minecraftDir, "assets", "indexes", selectedVersionDetails.assetIndex.id + ".json");
                     
-                    await client.DownloadFileTaskAsync(assetsIndexUrl, assetsIndexFile);
+                    byte[] indexData = await client.GetByteArrayAsync(assetsIndexUrl);
+                    File.WriteAllBytes(assetsIndexFile, indexData);
                     
                     string indexJson = File.ReadAllText(assetsIndexFile);
                     assetsIndex = JsonConvert.DeserializeObject<AssetsIndex>(indexJson);
@@ -410,13 +484,15 @@ namespace InstantMC
                             if (!File.Exists(localPath))
                             {
                                 Directory.CreateDirectory(Path.GetDirectoryName(localPath));
-                                await client.DownloadFileTaskAsync(
-                                    $"https://resources.download.minecraft.net/{hashPath}", 
-                                    localPath
+                                
+                                byte[] assetData = await client.GetByteArrayAsync(
+                                    $"https://resources.download.minecraft.net/{hashPath}"
                                 );
+                                File.WriteAllBytes(localPath, assetData);
+                                
                                 assetCount++;
                                 
-                                if (assetCount % 50 == 0) // Update progress every 50 assets
+                                if (assetCount % 50 == 0)
                                 {
                                     DownloadStatus.Text = $"Downloaded {assetCount} assets...";
                                 }
@@ -425,16 +501,18 @@ namespace InstantMC
                         catch (Exception ex)
                         {
                             assetErrors++;
-                            Console.WriteLine($"Failed to download asset {asset.Key}: {ex.Message}");
                         }
                     }
 
-                    MessageBox.Show($"Assets download complete!\nDownloaded: {assetCount}\nErrors: {assetErrors}", "Assets Status", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (assetErrors > 0)
+                    {
+                        MessageBox.Show($"Assets download complete!\nDownloaded: {assetCount}\nErrors: {assetErrors}", "Assets Status", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to download assets: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to download assets: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 throw;
             }
         }
@@ -447,21 +525,17 @@ namespace InstantMC
                 
                 string clientJarPath = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
                 
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
-                    client.DownloadProgressChanged += (s, args) =>
-                    {
-                        DownloadProgress.Value = args.ProgressPercentage;
-                        DownloadStatus.Text = $"Downloading client... {args.ProgressPercentage}%";
-                    };
-
-                    await client.DownloadFileTaskAsync(new Uri(selectedVersionDetails.downloads.client.url), clientJarPath);
+                    byte[] clientData = await client.GetByteArrayAsync(selectedVersionDetails.downloads.client.url);
+                    File.WriteAllBytes(clientJarPath, clientData);
+                    
                     MessageBox.Show("Client jar downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to download client: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Failed to download client: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 throw;
             }
         }
@@ -516,6 +590,16 @@ namespace InstantMC
             // Add client jar
             string clientJar = Path.Combine(minecraftDir, "versions", selectedVersionDetails.id, $"{selectedVersionDetails.id}.jar");
             paths.Add(clientJar);
+            
+            // ADD MODS TO CLASSPATH
+            string modsDir = Path.Combine(minecraftDir, "mods");
+            if (Directory.Exists(modsDir))
+            {
+                foreach (string modFile in Directory.GetFiles(modsDir, "*.jar"))
+                {
+                    paths.Add(modFile);
+                }
+            }
             
             return string.Join(";", paths);
         }
@@ -577,6 +661,7 @@ namespace InstantMC
         }
     }
 
+    // === DATA CLASSES ===
     public class Profile { 
         public string Username { get; set; } 
         public string ServerIP { get; set; } 

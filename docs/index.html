@@ -43,6 +43,7 @@
             right: 0;
             bottom: 0;
             background: radial-gradient(circle at 50% 50%, rgba(255, 107, 129, 0.1) 0%, transparent 50%);
+            pointer-events: none; /* FIXED: allows clicking */
         }
 
         .logo {
@@ -230,9 +231,8 @@
             <img src="app_icon.ico" alt="PawCraft Logo" class="logo">
             <h1>PawCraft Launcher</h1>
             <p>Experience Minecraft with a powerful, modern launcher built for performance and style</p>
-            <!-- chris dont forget href gng -->
             <a href="https://github.com/justdev-chris/PawCraft/releases/download/released/PawCraft.zip" class="download-btn">
-            <span>🚀 Download Now</span>
+                <span>🚀 Download Now</span>
             </a>
         </div>
     </div>

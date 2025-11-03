@@ -18,10 +18,16 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
+    - name: Install ImageMagick
+      run: choco install imagemagick -y
+
     - name: Convert PNG to ICO
       run: |
-        choco install imagemagick -y
         magick convert Resources/app_icon.png -define icon:auto-resize=16,32,48,256 Resources/app_icon.ico
+
+    - name: Convert logo to BMP
+      run: |
+        magick convert Resources/app_icon.png -resize 500x500 installer_banner.bmp
 
     - name: Restore dependencies
       run: dotnet restore

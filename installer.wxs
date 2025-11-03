@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="8839e9f7-47f7-404a-9c28-68116c96957d">
+  <Product Id="*" Name="PawCraft Launcher" Language="1033" Version="1.0.0.0" Manufacturer="justdev-chris" UpgradeCode="57cb00f5-7115-498a-a130-17bc89f873a9">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
-    <!-- UI Setup -->
+    <!-- UI Setup with Custom Logo -->
     <UIRef Id="WixUI_InstallDir" />
-    <UIRef Id="WixUI_ErrorProgressText" />
+    <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+    <WixVariable Id="WixUIDialogBmp" Value="installer_banner.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="installer_banner.bmp" />
     
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
@@ -32,7 +34,7 @@
   <!-- Start Menu Shortcut -->
   <Fragment>
     <ComponentGroup Id="ShortcutComponents" Directory="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="ef0c0504-f1e3-4493-8995-1ff4441e6dca">
+      <Component Id="ApplicationShortcut" Guid="efed8878-aab7-48d6-80d8-de317a665602">
         <Shortcut Id="StartMenuShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="installed" Type="integer" Value="1" KeyPath="yes" />
@@ -43,7 +45,7 @@
   <!-- Desktop Shortcut -->
   <Fragment>
     <DirectoryRef Id="DesktopFolder">
-      <Component Id="DesktopShortcut" Guid="da325f25-c209-42a9-b8f2-059e65a9b74c">
+      <Component Id="DesktopShortcut" Guid="6beeaa9d-ea8b-4373-bc9c-dc0e79a5b539">
         <Shortcut Id="DesktopShortcut" Name="PawCraft Launcher" Description="Minecraft Launcher" Target="[INSTALLFOLDER]PawCraft.exe" WorkingDirectory="INSTALLFOLDER" />
         <RegistryValue Root="HKCU" Key="Software\justdev-chris\PawCraft" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>

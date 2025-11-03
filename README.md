@@ -9,3 +9,11 @@ One-click Minecraft launcher for offline/cracked servers.
 
 ## Disclaimer
 For educational/testing use only. Violates Mojang EULA.
+
+# Join the PawCraft server!
+IP:pawcraft.catsdevs.online
+Port:24694
+js copy this if its direct connection
+```
+pawcraft.catsdevs.online:24694
+```

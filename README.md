@@ -1,5 +1,5 @@
 <div align="center">
-  <h2>PawCraft<h2>
+  <h3>PawCraft<h3>
     <img src="https://catsdevs.online/PawCraft/app_icon.ico">
     <p>PawCraft, a cracked minecraft launcher.<p>
 </div>

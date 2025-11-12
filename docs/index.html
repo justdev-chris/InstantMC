@@ -78,39 +78,26 @@
             margin: 0 auto 2rem;
         }
 
-        /* Stats Section */
+        /* Stats Section - Simplified */
         .stats-section {
             background: rgba(37, 37, 38, 0.8);
             border: 1px solid #333;
             border-radius: 12px;
-            padding: 1.5rem;
-            margin: 2rem auto;
-            max-width: 400px;
+            padding: 1rem 2rem;
+            margin: 2rem auto 0 auto;
+            max-width: 300px;
             text-align: center;
             backdrop-filter: blur(10px);
         }
 
         .stats-section h3 {
             color: #ff6b81;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .stat-item {
-            background: rgba(45, 45, 48, 0.6);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
         }
 
         .stat-number {
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: bold;
             color: #ff6b81;
         }
@@ -312,10 +299,6 @@
                 max-width: 600px;
                 height: auto;
             }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -325,24 +308,19 @@
             <img src="app_icon.ico" alt="PawCraft Logo" class="logo">
             <h1>PawCraft Launcher</h1>
             <p>Experience Minecraft with a powerful, modern launcher built for performance and style</p>
-            
 
             <button class="download-btn" onclick="trackDownload()">
                 <span>🚀 Download Now</span>
             </button>
+
+            <!-- Download Stats - Moved under button and simplified -->
+            <div class="stats-section">
+                <h3>📊 Downloads</h3>
+                <div class="stat-number" id="downloadCount">0</div>
+                <div class="stat-label">and counting!</div>
+            </div>
         </div>
     </div>
-
-                <!-- Download Stats -->
-            <div class="stats-section">
-                <h3>📊 Live Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number" id="downloadCount">0</div>
-                        <div class="stat-label">Downloads</div>
-                    </div>
-                </div>
-            </div>
 
     <div class="container">
         <div class="features">
@@ -493,7 +471,6 @@
                 const stats = await response.json();
                 
                 document.getElementById('downloadCount').textContent = stats.downloads;
-                document.getElementById('onlineCount').textContent = stats.online;
             } catch (error) {
                 console.log('Could not fetch stats');
             }

@@ -1,5 +1,8 @@
-# PawCraft
-One-click Minecraft launcher for offline/cracked servers.
+<div align="center">
+  <h2>PawCraft<h2>
+    <img src="https://catsdevs.online/PawCraft/app_icon.ico">
+    <p>PawCraft, a cracked minecraft launcher.<p>
+</div>
 
 ## Features
 - Save multiple profiles
@@ -8,7 +11,7 @@ One-click Minecraft launcher for offline/cracked servers.
 - Lightweight WPF app
 
 ## Disclaimer
-For educational/testing use only. Violates Mojang EULA.
+Violates Mojang EULA.
 
 # Join the PawCraft server!
 - IP:pawcraft.catsdevs.online

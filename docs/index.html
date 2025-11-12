@@ -43,7 +43,7 @@
             right: 0;
             bottom: 0;
             background: radial-gradient(circle at 50% 50%, rgba(255, 107, 129, 0.1) 0%, transparent 50%);
-            pointer-events: none; /* FIXED: allows clicking */
+            pointer-events: none;
         }
 
         .logo {
@@ -76,6 +76,49 @@
             opacity: 0.9;
             max-width: 600px;
             margin: 0 auto 2rem;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: rgba(37, 37, 38, 0.8);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem auto;
+            max-width: 400px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-section h3 {
+            color: #ff6b81;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(45, 45, 48, 0.6);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff6b81;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
         }
 
         /* Features Grid */
@@ -113,6 +156,45 @@
             color: #ff6b81;
         }
 
+        /* Smart Features Section */
+        .smart-features {
+            background: rgba(37, 37, 38, 0.6);
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            padding: 80px 0;
+        }
+
+        .smart-features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #ff6b81;
+        }
+
+        .features-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            background: rgba(45, 45, 48, 0.8);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            border-color: #ff6b81;
+            transform: translateX(5px);
+        }
+
+        .feature-item strong {
+            color: #ff6b81;
+            font-size: 1.1rem;
+        }
+
         /* Download Section */
         .download-section {
             text-align: center;
@@ -135,11 +217,19 @@
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 5px 20px rgba(255, 107, 129, 0.3);
+            cursor: pointer;
+            border: none;
         }
 
         .download-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 30px rgba(255, 107, 129, 0.5);
+        }
+
+        .download-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .requirements {
@@ -222,6 +312,10 @@
                 max-width: 600px;
                 height: auto;
             }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -231,9 +325,25 @@
             <img src="app_icon.ico" alt="PawCraft Logo" class="logo">
             <h1>PawCraft Launcher</h1>
             <p>Experience Minecraft with a powerful, modern launcher built for performance and style</p>
-            <a href="https://github.com/justdev-chris/PawCraft/releases/download/released/PawCraft.zip" class="download-btn">
+            
+            <!-- Download Stats -->
+            <div class="stats-section">
+                <h3>📊 Live Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="downloadCount">0</div>
+                        <div class="stat-label">Downloads</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="onlineCount">0</div>
+                        <div class="stat-label">Online Now</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="download-btn" onclick="trackDownload()">
                 <span>🚀 Download Now</span>
-            </a>
+            </button>
         </div>
     </div>
 
@@ -272,6 +382,33 @@
         </div>
     </div>
 
+    <!-- NEW SMART FEATURES SECTION -->
+    <div class="smart-features">
+        <div class="container">
+            <h2>⚡ Smart Launcher Features</h2>
+            <div class="features-list">
+                <div class="feature-item">
+                    🔗 <strong>Auto-Server Join</strong> - Launch directly into your favorite server
+                </div>
+                <div class="feature-item">
+                    📁 <strong>Custom Instances</strong> - Organize your Minecraft anywhere
+                </div>
+                <div class="feature-item">
+                    💾 <strong>Settings Keeper</strong> - Remembers your usernames & preferences
+                </div>
+                <div class="feature-item">
+                    🔄 <strong>Version Freedom</strong> - Play any Minecraft version instantly
+                </div>
+                <div class="feature-item">
+                    🎮 <strong>Mod Ready</strong> - Drop mods into the mods folder and play
+                </div>
+                <div class="feature-item">
+                    ⚙️ <strong>Config Saver</strong> - Preserves your settings across sessions
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="screenshots">
         <div class="container">
             <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem; color: #ff6b81;">In Action</h2>
@@ -290,9 +427,9 @@
         <div class="container">
             <h2 style="font-size: 2.5rem; margin-bottom: 1rem; color: #ff6b81;">Ready to Play?</h2>
             <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">Download the latest version of PawCraft</p>
-            <a href="https://github.com/justdev-chris/PawCraft/releases" class="download-btn">
-                <span>📥 Releases</span>
-            </a>
+            <button class="download-btn" onclick="trackDownload()">
+                <span>📥 Download PawCraft</span>
+            </button>
             <div class="requirements">
                 <p>Windows • Portable • No Installation Required</p>
                 <div>
@@ -311,5 +448,62 @@
             <p style="margin-top: 1rem; font-size: 0.9rem;">Open source and free forever</p>
         </div>
     </div>
+
+    <script>
+        // Track download function
+        async function trackDownload() {
+            const downloadUrl = 'https://github.com/justdev-chris/PawCraft/releases/download/released/PawCraft.zip';
+            
+            try {
+                // Send tracking request
+                const response = await fetch('/api/track-download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                // Start download
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = 'PawCraft.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Update stats
+                updateStats();
+
+            } catch (error) {
+                console.log('Tracking failed, but download should work');
+                // Fallback: just download without tracking
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = 'PawCraft.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Update stats function
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('downloadCount').textContent = stats.downloads;
+                document.getElementById('onlineCount').textContent = stats.online;
+            } catch (error) {
+                console.log('Could not fetch stats');
+            }
+        }
+
+        // Update stats every 30 seconds
+        setInterval(updateStats, 30000);
+
+        // Initial stats load
+        updateStats();
+    </script>
 </body>
 </html>

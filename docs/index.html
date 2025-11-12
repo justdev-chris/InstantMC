@@ -326,7 +326,14 @@
             <h1>PawCraft Launcher</h1>
             <p>Experience Minecraft with a powerful, modern launcher built for performance and style</p>
             
-            <!-- Download Stats -->
+
+            <button class="download-btn" onclick="trackDownload()">
+                <span>🚀 Download Now</span>
+            </button>
+        </div>
+    </div>
+
+                <!-- Download Stats -->
             <div class="stats-section">
                 <h3>📊 Live Stats</h3>
                 <div class="stats-grid">
@@ -334,18 +341,8 @@
                         <div class="stat-number" id="downloadCount">0</div>
                         <div class="stat-label">Downloads</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="onlineCount">0</div>
-                        <div class="stat-label">Online Now</div>
-                    </div>
                 </div>
             </div>
-
-            <button class="download-btn" onclick="trackDownload()">
-                <span>🚀 Download Now</span>
-            </button>
-        </div>
-    </div>
 
     <div class="container">
         <div class="features">
@@ -503,7 +500,7 @@
         }
 
         // Update stats every 30 seconds
-        setInterval(updateStats, 30000);
+        setInterval(updateStats, 3000);
 
         // Initial stats load
         updateStats();

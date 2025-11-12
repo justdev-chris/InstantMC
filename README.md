@@ -1,6 +1,6 @@
 <div align="center">
-  <h3>PawCraft<h3>
-    <img src="https://catsdevs.online/PawCraft/app_icon.ico">
+  <h2>PawCraft<h2>
+    <img src="https://catsdevs.online/PawCraft/app_icon.ico" width="200" height="150">
     <p>PawCraft, a cracked minecraft launcher.<p>
 </div>
 
